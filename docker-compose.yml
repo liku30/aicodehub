@@ -1,0 +1,76 @@
+# ============================================
+# AiCodeHub Docker Compose 部署配置
+# 一键启动：docker-compose up -d
+# ============================================
+
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: aicodehub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: aicodehub
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./aicodehub-backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - aicodehub-net
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: aicodehub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aicodehub-net
+
+  # 后端 Spring Boot
+  backend:
+    build:
+      context: ./aicodehub-backend
+      dockerfile: Dockerfile
+    container_name: aicodehub-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/aicodehub?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_DATA_REDIS_HOST: redis
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - aicodehub-net
+
+  # 前端 + Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: aicodehub-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./aicodehub-frontend/dist:/usr/share/nginx/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - aicodehub-net
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  aicodehub-net:
+    driver: bridge

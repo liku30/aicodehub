@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiCodeHub - 前端页面原型预览</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
+
+    /* ===== 原型导航 ===== */
+    .proto-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #1a1a2e; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .proto-nav span { color: #fff; font-weight: 700; margin-right: 12px; }
+    .proto-nav button { padding: 6px 16px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: #fff; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .proto-nav button:hover, .proto-nav button.active { background: #409eff; border-color: #409eff; }
+    .proto-hint { color: #666; text-align: center; padding: 80px 20px 10px; font-size: 13px; }
+
+    /* ===== 页面容器 ===== */
+    .page { display: none; margin-top: 56px; }
+    .page.active { display: block; }
+
+    /* ===== 通用 ===== */
+    .header { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: sticky; top: 56px; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #409eff; text-decoration: none; }
+    .logo-text { color: #303133; }
+    .nav { display: flex; align-items: center; gap: 20px; }
+    .nav a { color: #606266; text-decoration: none; font-size: 14px; }
+    .nav a:hover, .nav a.active { color: #409eff; }
+    .btn { display: inline-block; padding: 8px 20px; border-radius: 6px; font-size: 14px; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-primary { background: #409eff; color: #fff; }
+    .btn-primary:hover { background: #337ecc; }
+    .btn-plain { background: #fff; color: #409eff; border: 1px solid #409eff; }
+    .btn-plain:hover { background: #ecf5ff; }
+    .btn-danger { background: #f56c6c; color: #fff; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+
+    /* ===== 首页 ===== */
+    .hero { text-align: center; padding: 100px 20px 80px; background: linear-gradient(135deg, #f5f7fa 0%, #e8f4fd 100%); }
+    .hero h1 { font-size: 48px; font-weight: 700; color: #303133; margin-bottom: 16px; line-height: 1.3; }
+    .hero h1 span { color: #409eff; }
+    .hero p { font-size: 18px; color: #606266; margin-bottom: 32px; line-height: 1.8; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; }
+    .features { max-width: 1200px; margin: 0 auto; padding: 60px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature { text-align: center; padding: 40px 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .feature:hover { transform: translateY(-4px); transition: transform 0.2s; }
+    .feature .icon { font-size: 48px; margin-bottom: 16px; }
+    .feature h3 { font-size: 18px; margin-bottom: 10px; }
+    .feature p { color: #909399; font-size: 14px; line-height: 1.6; }
+    .footer { text-align: center; padding: 40px; color: #c0c4cc; font-size: 14px; }
+
+    /* ===== 登录/注册 ===== */
+    .auth-page { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .auth-card { width: 420px; background: #fff; border-radius: 16px; padding: 48px 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .auth-card h2 { text-align: center; font-size: 24px; margin-bottom: 8px; }
+    .auth-card .subtitle { text-align: center; color: #909399; margin-bottom: 28px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 14px; color: #606266; margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #409eff; }
+    .form-btn { width: 100%; padding: 12px; font-size: 16px; }
+    .auth-footer { text-align: center; margin-top: 16px; color: #909399; font-size: 14px; }
+    .auth-footer a { color: #409eff; text-decoration: none; }
+
+    /* ===== Dashboard ===== */
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; gap: 20px; }
+    .sidebar { width: 200px; flex-shrink: 0; }
+    .sidebar-section { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .sidebar-section h4 { font-size: 13px; color: #909399; margin-bottom: 10px; }
+    .sidebar-item { padding: 8px 12px; border-radius: 6px; font-size: 14px; color: #606266; cursor: pointer; }
+    .sidebar-item:hover { background: #f5f7fa; }
+    .sidebar-item.active { background: #ecf5ff; color: #409eff; }
+    .main { flex: 1; min-width: 0; }
+    .search-bar { margin-bottom: 16px; }
+    .search-input { width: 100%; padding: 12px 16px 12px 40px; border: 1px solid #dcdfe6; border-radius: 8px; font-size: 14px; outline: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23909399' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 12px center no-repeat; }
+    .snippet-card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: box-shadow 0.2s; }
+    .snippet-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .snippet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .lang-tag { padding: 2px 10px; border-radius: 4px; color: #fff; font-size: 12px; font-weight: 500; }
+    .snippet-time { color: #c0c4cc; font-size: 12px; }
+    .snippet-card h3 { font-size: 16px; margin-bottom: 6px; color: #303133; }
+    .snippet-desc { font-size: 13px; color: #909399; margin-bottom: 10px; }
+    .code-preview { background: #282c34; color: #abb2bf; border-radius: 6px; padding: 14px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 1.5; overflow: hidden; max-height: 120px; margin-bottom: 10px; white-space: pre; }
+    .snippet-footer { display: flex; gap: 16px; color: #c0c4cc; font-size: 13px; }
+
+    /* ===== 片段详情 ===== */
+    .detail { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .detail-header h1 { font-size: 24px; margin-bottom: 8px; }
+    .detail-meta { display: flex; gap: 16px; align-items: center; font-size: 13px; color: #909399; margin-top: 8px; }
+    .detail-actions { display: flex; gap: 8px; }
+    .code-block { background: #282c34; border-radius: 8px; overflow: hidden; }
+    .code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #21252b; color: #abb2bf; font-size: 13px; }
+    .code-block-content { padding: 16px; color: #abb2bf; font-family: 'Consolas', monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+    .ai-section { background: #f5f7fa; border-radius: 8px; padding: 24px; text-align: center; color: #909399; }
+    .ai-tabs { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; }
+    .ai-tab { padding: 6px 16px; border-radius: 20px; background: #fff; color: #606266; font-size: 13px; cursor: pointer; border: 1px solid #dcdfe6; }
+    .ai-tab.active { background: #409eff; color: #fff; border-color: #409eff; }
+    .comment-item { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .comment-header strong { font-size: 14px; }
+    .comment-header span { color: #c0c4cc; font-size: 12px; }
+    .comment-item p { color: #606266; font-size: 14px; line-height: 1.6; }
+
+    /* ===== 新建片段 ===== */
+    .editor { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .editor .form-row { display: flex; gap: 16px; }
+    .editor .form-row .form-group { flex: 1; }
+    .editor textarea.code-input { font-family: 'Consolas', monospace; font-size: 14px; line-height: 1.6; min-height: 300px; resize: vertical; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+
+    /* ===== 探索广场 ===== */
+    .explore { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .explore-header { text-align: center; margin-bottom: 30px; }
+    .explore-header h1 { font-size: 28px; margin-bottom: 8px; }
+    .explore-header p { color: #909399; }
+    .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .filter-bar .search-input { flex: 1; }
+    .filter-bar select { padding: 12px; border: 1px solid #dcdfe6; border-radius: 8px; font-size: 14px; width: 140px; }
+  </style>
+</head>
+<body>
+
+<!-- 原型导航栏 -->
+<div class="proto-nav">
+  <span>&#x1F3A8; 页面原型预览</span>
+  <button class="active" onclick="showPage('home')">首页</button>
+  <button onclick="showPage('login')">登录</button>
+  <button onclick="showPage('register')">注册</button>
+  <button onclick="showPage('dashboard')">控制台</button>
+  <button onclick="showPage('detail')">片段详情</button>
+  <button onclick="showPage('editor')">新建片段</button>
+  <button onclick="showPage('explore')">探索广场</button>
+</div>
+
+<!-- ========== 首页 ========== -->
+<div id="page-home" class="page active">
+  <div class="header">
+    <div class="header-inner">
+      <a class="logo" href="#"><span>&lt;/&gt;</span><span class="logo-text">AiCodeHub</span></a>
+      <div class="nav">
+        <a href="#">探索</a>
+        <a href="#"><span class="btn btn-plain" style="padding:6px 16px;font-size:13px">登录</span></a>
+        <a href="#"><span class="btn btn-primary" style="padding:6px 16px;font-size:13px">注册</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>让代码管理<br>更<span>智能</span></h1>
+    <p>AiCodeHub 是一个面向开发者的智能代码片段管理平台，<br>集成AI能力，提供代码解释、优化建议和测试用例生成。</p>
+    <div class="hero-btns">
+      <a class="btn btn-primary" style="padding:12px 32px;font-size:16px">立即开始使用</a>
+      <a class="btn btn-plain" style="padding:12px 32px;font-size:16px">探索代码库</a>
+    </div>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#x1F916;</div>
+      <h3>AI 智能分析</h3>
+      <p>基于DeepSeek大模型，自动解释代码逻辑，提供优化建议，生成单元测试。</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x26A1;</div>
+      <h3>高效管理</h3>
+      <p>支持多语言代码高亮、标签分类、全文搜索，让代码片段管理井井有条。</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1F465;</div>
+      <h3>社区共享</h3>
+      <p>公开你的代码片段，发现优秀的代码实践，与开发者社区共同成长。</p>
+    </div>
+  </div>
+  <div class="footer">&copy; 2026 AiCodeHub. 让代码管理更智能。</div>
+</div>
+
+<!-- ========== 登录 ========== -->
+<div id="page-login" class="page">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div style="text-align:center;margin-bottom:20px">
+        <a class="logo" href="#"><span>&lt;/&gt;</span><span>AiCodeHub</span></a>
+      </div>
+      <h2>登录</h2>
+      <p class="subtitle">欢迎回来！</p>
+      <div class="form-group">
+        <label>用户名</label>
+        <input class="form-input" type="text" placeholder="请输入用户名">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input class="form-input" type="password" placeholder="请输入密码">
+      </div>
+      <button class="btn btn-primary form-btn">登录</button>
+      <div class="auth-footer">还没有账号？<a href="#" onclick="showPage('register')">立即注册</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 注册 ========== -->
+<div id="page-register" class="page">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div style="text-align:center;margin-bottom:20px">
+        <a class="logo" href="#"><span>&lt;/&gt;</span><span>AiCodeHub</span></a>
+      </div>
+      <h2>注册</h2>
+      <p class="subtitle">创建你的账号</p>
+      <div class="form-group">
+        <label>用户名（3-20个字符）</label>
+        <input class="form-input" type="text" placeholder="请输入用户名">
+      </div>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input class="form-input" type="email" placeholder="请输入邮箱">
+      </div>
+      <div class="form-group">
+        <label>密码（6-30个字符）</label>
+        <input class="form-input" type="password" placeholder="请输入密码">
+      </div>
+      <div class="form-group">
+        <label>确认密码</label>
+        <input class="form-input" type="password" placeholder="请再次输入密码">
+      </div>
+      <button class="btn btn-primary form-btn">注册</button>
+      <div class="auth-footer">已有账号？<a href="#" onclick="showPage('login')">立即登录</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 控制台 ========== -->
+<div id="page-dashboard" class="page">
+  <div class="header">
+    <div class="header-inner">
+      <a class="logo" href="#"><span>&lt;/&gt;</span><span class="logo-text">AiCodeHub</span></a>
+      <div class="nav">
+        <a href="#" class="active">我的代码</a>
+        <a href="#" onclick="showPage('explore')">探索</a>
+        <a href="#" onclick="showPage('editor')"><span class="btn btn-primary" style="padding:6px 16px;font-size:13px">+ 新建片段</span></a>
+        <div style="width:32px;height:32px;border-radius:50%;background:#409eff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer">Z</div>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h4>筛选</h4>
+        <div class="sidebar-item active">全部</div>
+        <div class="sidebar-item">我的收藏</div>
+      </div>
+      <div class="sidebar-section">
+        <h4>语言</h4>
+        <div class="sidebar-item">Java</div>
+        <div class="sidebar-item">Python</div>
+        <div class="sidebar-item">JavaScript</div>
+        <div class="sidebar-item">TypeScript</div>
+        <div class="sidebar-item">Go</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="search-bar">
+        <input class="search-input" type="text" placeholder="搜索代码片段...">
+      </div>
+      <div class="snippet-card" onclick="showPage('detail')">
+        <div class="snippet-header">
+          <span class="lang-tag" style="background:#ED8B00">Java</span>
+          <span class="snippet-time">3天前</span>
+        </div>
+        <h3>快速排序算法 - Java实现</h3>
+        <p class="snippet-desc">经典的快速排序算法实现，包含基准选择优化</p>
+        <div class="code-preview">public int[] quickSort(int[] arr, int left, int right) {
+    if (left >= right) return arr;
+    int pivot = partition(arr, left, right);
+    quickSort(arr, left, pivot - 1);
+    quickSort(arr, pivot + 1, right);
+    return arr;
+}</div>
+        <div class="snippet-footer">
+          <span>&#x2B50; 12</span>
+          <span>&#x1F4AC; 3</span>
+          <span>&#x1F441; 89</span>
+        </div>
+      </div>
+      <div class="snippet-card">
+        <div class="snippet-header">
+          <span class="lang-tag" style="background:#3776AB">Python</span>
+          <span class="snippet-time">5天前</span>
+        </div>
+        <h3>Flask RESTful API 模板</h3>
+        <p class="snippet-desc">基于Flask的RESTful API基础模板，包含JWT认证</p>
+        <div class="code-preview">from flask import Flask, jsonify, request
+from flask_jwt_extended import JWTManager, create_access_token
+
+app = Flask(__name__)
+jwt = JWTManager(app)
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+    token = create_access_token(identity=username)
+    return jsonify(access_token=token)</div>
+        <div class="snippet-footer">
+          <span>&#x2B50; 8</span>
+          <span>&#x1F4AC; 1</span>
+          <span>&#x1F441; 45</span>
+        </div>
+      </div>
+      <div class="snippet-card">
+        <div class="snippet-header">
+          <span class="lang-tag" style="background:#F7DF1E;color:#333">JavaScript</span>
+          <span class="snippet-time">1周前</span>
+        </div>
+        <h3>防抖与节流函数实现</h3>
+        <p class="snippet-desc">手写debounce和throttle，面试高频题</p>
+        <div class="code-preview">function debounce(fn, delay) {
+    let timer = null;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}</div>
+        <div class="snippet-footer">
+          <span>&#x2B50; 25</span>
+          <span>&#x1F4AC; 7</span>
+          <span>&#x1F441; 203</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ========== 片段详情 ========== -->
+<div id="page-detail" class="page">
+  <div class="header">
+    <div class="header-inner">
+      <a class="logo" href="#"><span>&lt;/&gt;</span><span class="logo-text">AiCodeHub</span></a>
+      <div class="nav">
+        <a href="#" onclick="showPage('explore')">探索</a>
+        <a href="#" onclick="showPage('dashboard')">控制台</a>
+      </div>
+    </div>
+  </div>
+  <div class="detail">
+    <div class="card">
+      <div class="detail-header">
+        <div>
+          <h1>快速排序算法 - Java实现</h1>
+          <p style="color:#909399;margin-bottom:4px">经典的快速排序算法实现，包含基准选择优化</p>
+          <div class="detail-meta">
+            <span class="lang-tag" style="background:#ED8B00">Java</span>
+            <span>作者：zhangsan</span>
+            <span>2026-05-22</span>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-plain" style="padding:8px 16px">&#x2B50; 收藏 12</button>
+          <button class="btn btn-plain" style="padding:8px 16px">编辑</button>
+          <button class="btn btn-danger" style="padding:8px 16px">删除</button>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span>Java</span>
+          <span style="cursor:pointer;color:#409eff" onclick="alert('已复制到剪贴板')">复制代码</span>
+        </div>
+        <div class="code-block-content">/**
+ * 快速排序算法 - Java实现
+ * 时间复杂度: O(n log n) 平均, O(n²) 最坏
+ * 空间复杂度: O(log n)
+ */
+public class QuickSort {
+
+    public static int[] quickSort(int[] arr, int left, int right) {
+        if (left < right) {
+            // 三数取中法选择基准
+            int pivotIndex = medianOfThree(arr, left, right);
+            swap(arr, pivotIndex, right);
+
+            int pivot = partition(arr, left, right);
+            quickSort(arr, left, pivot - 1);
+            quickSort(arr, pivot + 1, right);
+        }
+        return arr;
+    }
+
+    private static int partition(int[] arr, int left, int right) {
+        int pivot = arr[right];
+        int i = left - 1;
+        for (int j = left; j < right; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr, i, j);
+            }
+        }
+        swap(arr, i + 1, right);
+        return i + 1;
+    }
+
+    private static int medianOfThree(int[] arr, int left, int right) {
+        int mid = left + (right - left) / 2;
+        if (arr[left] > arr[mid]) swap(arr, left, mid);
+        if (arr[left] > arr[right]) swap(arr, left, right);
+        if (arr[mid] > arr[right]) swap(arr, mid, right);
+        return mid;
+    }
+
+    private static void swap(int[] arr, int i, int j) {
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}</div>
+      </div>
+    </div>
+
+    <!-- AI分析 -->
+    <div class="card">
+      <h3 style="margin-bottom:16px">&#x1F916; AI 分析</h3>
+      <div class="ai-tabs">
+        <span class="ai-tab active">代码解释</span>
+        <span class="ai-tab">优化建议</span>
+        <span class="ai-tab">生成测试</span>
+      </div>
+      <div class="ai-section">
+        <p style="margin-bottom:12px"><strong>算法概述：</strong>这段代码实现了快速排序算法，使用了三数取中法优化基准选择。</p>
+        <p style="margin-bottom:12px"><strong>时间复杂度：</strong>平均 O(n log n)，最坏 O(n²)（当数组已排序时）</p>
+        <p style="margin-bottom:12px"><strong>空间复杂度：</strong>O(log n)（递归调用栈）</p>
+        <p><strong>优化亮点：</strong>使用三数取中法（medianOfThree）选择基准，避免了最坏情况的发生概率。</p>
+      </div>
+    </div>
+
+    <!-- 评论区 -->
+    <div class="card">
+      <h3 style="margin-bottom:16px">&#x1F4AC; 评论 (3)</h3>
+      <div style="margin-bottom:20px">
+        <textarea class="form-input" style="min-height:80px;resize:vertical" placeholder="写下你的评论..."></textarea>
+        <button class="btn btn-primary" style="margin-top:8px">发表评论</button>
+      </div>
+      <div class="comment-item">
+        <div class="comment-header"><strong>dev_wang</strong><span>2天前</span></div>
+        <p>三数取中法的实现很优雅，学习了！在实际项目中这种优化很实用。</p>
+      </div>
+      <div class="comment-item">
+        <div class="comment-header"><strong>coder_li</strong><span>1天前</span></div>
+        <p>建议可以考虑加入插入排序的优化，当子数组长度小于10时切换为插入排序，实际效果会更好。</p>
+      </div>
+      <div class="comment-item">
+        <div class="comment-header"><strong>algo_zhao</strong><span>12小时前</span></div>
+        <p>写得很清晰，面试的时候直接参考这个思路就行👍</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 新建片段 ========== -->
+<div id="page-editor" class="page">
+  <div class="header">
+    <div class="header-inner">
+      <a class="logo" href="#" onclick="showPage('dashboard')" style="font-size:14px;color:#409eff">← 返回</a>
+      <span style="font-size:16px;font-weight:600">新建代码片段</span>
+      <div></div>
+    </div>
+  </div>
+  <div class="editor">
+    <div class="card">
+      <div class="form-group">
+        <label>标题 *</label>
+        <input class="form-input" type="text" placeholder="给你的代码片段起个名字">
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <input class="form-input" type="text" placeholder="简短描述这段代码的功能">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>编程语言 *</label>
+          <select class="form-input">
+            <option value="">请选择</option>
+            <option>Java</option>
+            <option>Python</option>
+            <option>JavaScript</option>
+            <option>TypeScript</option>
+            <option>Go</option>
+            <option>C/C++</option>
+            <option>Rust</option>
+            <option>SQL</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>可见性</label>
+          <select class="form-input">
+            <option>公开 - 所有人可见</option>
+            <option>私有 - 仅自己可见</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>代码内容 *</label>
+        <textarea class="form-input code-input" placeholder="在此粘贴或输入你的代码..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-plain" onclick="showPage('dashboard')">取消</button>
+        <button class="btn btn-primary" onclick="alert('创建成功！');showPage('dashboard')">创建片段</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 探索广场 ========== -->
+<div id="page-explore" class="page">
+  <div class="header">
+    <div class="header-inner">
+      <a class="logo" href="#"><span>&lt;/&gt;</span><span class="logo-text">AiCodeHub</span></a>
+      <div class="nav">
+        <a href="#" class="active">探索</a>
+        <a href="#" onclick="showPage('dashboard')">控制台</a>
+      </div>
+    </div>
+  </div>
+  <div class="explore">
+    <div class="explore-header">
+      <h1>探索代码库</h1>
+      <p>发现社区中优秀的代码片段</p>
+    </div>
+    <div class="filter-bar">
+      <input class="search-input" type="text" placeholder="搜索代码片段...">
+      <select>
+        <option value="">全部语言</option>
+        <option>Java</option>
+        <option>Python</option>
+        <option>JavaScript</option>
+        <option>TypeScript</option>
+        <option>Go</option>
+      </select>
+    </div>
+    <div class="snippet-card" onclick="showPage('detail')">
+      <div class="snippet-header">
+        <span class="lang-tag" style="background:#ED8B00">Java</span>
+        <span style="font-size:13px;color:#909399">zhangsan</span>
+      </div>
+      <h3>快速排序算法 - Java实现</h3>
+      <p class="snippet-desc">经典的快速排序算法实现，包含基准选择优化</p>
+      <div class="code-preview">public int[] quickSort(int[] arr, int left, int right) {
+    if (left >= right) return arr;
+    int pivot = partition(arr, left, right);
+    quickSort(arr, left, pivot - 1);
+    quickSort(arr, pivot + 1, right);
+    return arr;
+}</div>
+      <div class="snippet-footer">
+        <span>&#x2B50; 12</span>
+        <span>&#x1F4AC; 3</span>
+        <span>2026-05-22</span>
+      </div>
+    </div>
+    <div class="snippet-card">
+      <div class="snippet-header">
+        <span class="lang-tag" style="background:#3178C6">TypeScript</span>
+        <span style="font-size:13px;color:#909399">frontend_li</span>
+      </div>
+      <h3>Vue 3 + Pinia 状态管理最佳实践</h3>
+      <p class="snippet-desc">完整的Pinia store示例，包含持久化和模块化</p>
+      <div class="code-preview">import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+
+export const useAuthStore = defineStore('auth', () => {
+  const token = ref(localStorage.getItem('token') || '')
+  const user = ref(null)
+  const isLoggedIn = computed(() => !!token.value)
+
+  function login(credentials) { /* ... */ }
+  function logout() { /* ... */ }
+
+  return { token, user, isLoggedIn, login, logout }
+})</div>
+      <div class="snippet-footer">
+        <span>&#x2B50; 34</span>
+        <span>&#x1F4AC; 8</span>
+        <span>2026-05-20</span>
+      </div>
+    </div>
+    <div class="snippet-card">
+      <div class="snippet-header">
+        <span class="lang-tag" style="background:#00ADD8">Go</span>
+        <span style="font-size:13px;color:#909399">gopher_wang</span>
+      </div>
+      <h3>Go 并发安全的连接池实现</h3>
+      <p class="snippet-desc">基于sync.Pool和channel实现的高性能连接池</p>
+      <div class="code-preview">type Pool struct {
+    mu       sync.Mutex
+    conns    chan net.Conn
+    factory  func() (net.Conn, error)
+    maxOpen  int
+    numOpen  int
+}
+
+func (p *Pool) Get(ctx context.Context) (net.Conn, error) {
+    select {
+    case conn := <-p.conns:
+        return conn, nil
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
+}</div>
+      <div class="snippet-footer">
+        <span>&#x2B50; 21</span>
+        <span>&#x1F4AC; 5</span>
+        <span>2026-05-18</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.proto-nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+
+</body>
+</html>
