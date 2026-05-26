@@ -21,6 +21,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item v-if="userStore.userInfo?.role === 1" command="admin">管理后台</el-dropdown-item>
                 <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -154,6 +155,7 @@ function toggleTheme() {
 
 function handleCommand(cmd) {
   if (cmd === 'profile') router.push('/profile')
+  if (cmd === 'admin') router.push('/admin')
   if (cmd === 'logout') { userStore.logout(); router.push('/login') }
 }
 
