@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiCodeHub - AI风格增强效果</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:#0a0a0a;color:#e5e5e5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+    :root{--bg:#0a0a0a;--s1:#111;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;--bd:#2a2a2a;--bd2:#333;--t:#f0f0f0;--t2:#a0a0a0;--t3:#666;--ac:#10a37f;--ac2:#19c37d;--acl:rgba(16,163,127,0.12);--gd:linear-gradient(135deg,#10a37f,#19c37d,#10a37f);--pu:#a970ff;--bl:#6c9eff;--yw:#f0b232;--rd:#e06c75}
+
+    /* ===== 动画 ===== */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+    @keyframes typing{from{width:0}to{width:100%}}
+    @keyframes blink{50%{border-color:transparent}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .fade-up{animation:fadeUp .6s ease both}
+    .fade-d1{animation-delay:.1s}
+    .fade-d2{animation-delay:.2s}
+    .fade-d3{animation-delay:.3s}
+    .fade-d4{animation-delay:.4s}
+
+    /* ===== 装饰元素 ===== */
+    .grid-bg{background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.03) 1px,transparent 0);background-size:40px 40px}
+    .glow{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:.08;pointer-events:none}
+    .glow-g{background:#10a37f}.glow-p{background:#a970ff}.glow-b{background:#6c9eff}
+    .dot{width:4px;height:4px;border-radius:50%;background:var(--ac);display:inline-block}
+    .line-v{width:1px;height:60px;background:linear-gradient(to bottom,var(--ac),transparent)}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:1px solid var(--bd2);background:var(--s2);font-size:12px;color:var(--t2)}
+    .badge .dot{animation:pulse 2s infinite}
+
+    /* ===== 导航 ===== */
+    .nav{background:rgba(17,17,17,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+    .nav-in{max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;justify-content:space-between;align-items:center}
+    .logo{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;color:var(--t);text-decoration:none}
+    .logo-i{width:28px;height:28px;border-radius:6px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+    .nav-r{display:flex;align-items:center;gap:14px}
+    .nav-a{color:var(--t2);font-size:14px;text-decoration:none;transition:color .15s}
+    .nav-a:hover,.nav-a.on{color:var(--t)}
+    .btn{background:var(--ac);color:#fff;border:none;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn:hover{background:var(--ac2)}
+    .btn-o{background:transparent;color:var(--t2);border:1px solid var(--bd2);padding:7px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer}
+    .btn-o:hover{border-color:var(--t2);color:var(--t)}
+    .av{width:30px;height:30px;border-radius:50%;background:var(--gd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
+
+    /* ===== 高亮 ===== */
+    .kw{color:#c678dd}.tp{color:#e5c07b}.fn{color:#61afef}.st{color:#98c379}.cm{color:#5c6370;font-style:italic}.nm{color:#d19a66}.an{color:#e06c75}
+    .ln{color:#3b3b4d;user-select:none;display:inline-block;min-width:28px;text-align:right;margin-right:16px}
+
+    /* ===== 代码块 ===== */
+    .cb{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden}
+    .cb-t{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#141414;border-bottom:1px solid #2a2a2a;font-size:12px;color:#666}
+    .cb-c{padding:16px;font-family:'Fira Code',monospace;font-size:13.5px;line-height:1.7;overflow-x:auto;color:#abb2bf}
+    .cp{background:#1a1a1a;border-radius:8px;padding:14px;font-family:'Fira Code',monospace;font-size:13px;line-height:1.5;overflow:hidden;max-height:100px;-webkit-mask-image:linear-gradient(black 50%,transparent);mask-image:linear-gradient(black 50%,transparent);border:1px solid #2a2a2a}
+
+    /* ===== 标签 ===== */
+    .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#fff}
+    .tab{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--bd);color:var(--t2)}
+    .tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+
+    /* ===== 布局 ===== */
+    .dsh{max-width:1280px;margin:0 auto;padding:20px;display:flex;gap:20px}
+    .sd{width:220px;flex-shrink:0}
+    .sc{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+    .sh{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+    .si{padding:7px 12px;border-radius:6px;font-size:13px;color:var(--t2);cursor:pointer}
+    .si:hover{background:var(--acl);color:var(--ac)}.si.on{background:var(--acl);color:var(--ac);font-weight:500}
+    .mn{flex:1;min-width:0}
+    .cd{background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:14px;transition:all .2s}
+    .cd:hover{border-color:var(--bd2);transform:translateY(-2px)}
+
+    /* ===== 图表 ===== */
+    .bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
+    .bi{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .bf{width:100%;border-radius:3px 3px 0 0;opacity:.7;transition:opacity .2s}.bf:hover{opacity:1}
+    .bl{font-size:10px;color:var(--t3)}
+
+    /* ===== 评论 ===== */
+    .cmt{padding:12px 0;border-bottom:1px solid var(--bd)}.cmt:last-child{border-bottom:none}
+    .ch{display:flex;justify-content:space-between;margin-bottom:4px}
+    .ch strong{font-size:14px;color:var(--t)}.ch span{font-size:12px;color:var(--t3)}
+    .cb2{font-size:14px;color:var(--t2);line-height:1.6}
+
+    /* ===== 打字机效果 ===== */
+    .typewriter{overflow:hidden;white-space:nowrap;border-right:2px solid var(--ac);animation:typing 2s steps(40) 1s forwards,blink .5s step-end infinite alternate;width:0}
+
+    /* ===== 数字增长动画 ===== */
+    .counter{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+
+<!-- ==========================================
+     效果图1：首页（AI风格增强版）
+     ========================================== -->
+<div style="background:linear-gradient(90deg,#10a37f,#19c37d);color:#fff;padding:7px 20px;font-size:12px;font-weight:600;text-align:center;">
+  AI 风格增强版 · 首页（背景光晕 + 几何装饰 + AI预览 + 数据统计）
+</div>
+
+<div style="position:relative;overflow:hidden;" class="grid-bg">
+  <!-- 背景光晕 -->
+  <div class="glow glow-g" style="top:-200px;left:-100px;"></div>
+  <div class="glow glow-p" style="top:100px;right:-200px;"></div>
+  <div class="glow glow-b" style="bottom:-100px;left:30%;"></div>
+
+  <nav class="nav">
+    <div class="nav-in">
+      <a href="#" class="logo"><span class="logo-i">&lt;/&gt;</span><span>AiCodeHub</span></a>
+      <div class="nav-r">
+        <a href="#" class="nav-a">探索</a>
+        <button class="btn-o">登录</button>
+        <button class="btn">注册</button>
+      </div>
+    </div>
+  </nav>
+
+  <section style="text-align:center;padding:100px 20px 60px;position:relative;">
+    <!-- 装饰线 -->
+    <div class="line-v" style="margin:0 auto 20px;opacity:.3;"></div>
+
+    <div class="badge fade-up" style="margin-bottom:24px;">
+      <span class="dot"></span> DeepSeek AI 驱动 · 免费使用
+    </div>
+    <h1 class="fade-up fade-d1" style="font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:20px;">
+      用 AI 管理<br><span style="background:linear-gradient(135deg,#10a37f,#19c37d,#a970ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">你的代码</span>
+    </h1>
+    <p class="fade-up fade-d2" style="font-size:17px;color:var(--t2);margin-bottom:36px;line-height:1.7;max-width:560px;margin-left:auto;margin-right:auto;">
+      存储代码片段，AI 自动解释、优化、生成测试。<br>像对话一样理解每一行代码。
+    </p>
+    <div class="fade-up fade-d3" style="display:flex;gap:12px;justify-content:center;margin-bottom:56px;">
+      <button class="btn" style="padding:14px 32px;font-size:15px;">免费开始使用</button>
+      <button class="btn-o" style="padding:14px 32px;font-size:15px;">探索代码库</button>
+    </div>
+
+    <!-- 数据统计 + 装饰点 -->
+    <div class="fade-up fade-d4" style="display:flex;gap:48px;justify-content:center;position:relative;">
+      <div class="dot" style="position:absolute;left:0;top:50%;animation:pulse 2s infinite;"></div>
+      <div><span class="counter" style="font-size:32px;font-weight:700;color:var(--t);display:block;">34</span><span style="font-size:13px;color:var(--t3);">代码片段</span></div>
+      <div><span class="counter" style="font-size:32px;font-weight:700;color:var(--t);display:block;">15</span><span style="font-size:13px;color:var(--t3);">编程语言</span></div>
+      <div><span class="counter" style="font-size:32px;font-weight:700;color:var(--ac);display:block;">AI</span><span style="font-size:13px;color:var(--t3);">智能分析</span></div>
+      <div class="dot" style="position:absolute;right:0;top:50%;animation:pulse 2s infinite .5s;"></div>
+    </div>
+  </section>
+
+  <!-- AI 对话预览 -->
+  <section style="max-width:800px;margin:0 auto 0;padding:0 20px 80px;" class="fade-up">
+    <div class="cb" style="border-radius:16px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#141414;border-bottom:1px solid #2a2a2a;font-size:13px;color:#666;">
+        <span>&#x1F916; AI 分析</span>
+        <div style="display:flex;gap:6px;margin-left:auto;">
+          <span class="tab on" style="padding:4px 12px;font-size:12px;">代码解释</span>
+          <span class="tab" style="padding:4px 12px;font-size:12px;border-color:#2a2a2a;">优化建议</span>
+          <span class="tab" style="padding:4px 12px;font-size:12px;border-color:#2a2a2a;">生成测试</span>
+        </div>
+      </div>
+      <div class="cb-c">
+<span class="kw">public static void</span> <span class="fn">sort</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> left, <span class="tp">int</span> right) {
+    <span class="kw">if</span> (left >= right) <span class="kw">return</span>;
+    <span class="cm">// 三数取中</span>
+    <span class="tp">int</span> mid = left + ((right - left) >> <span class="nm">1</span>);
+    <span class="kw">if</span> (arr[left] > arr[mid]) <span class="fn">swap</span>(arr, left, mid);
+}</div>
+      <div style="padding:0 16px 16px;">
+        <div style="background:var(--s3);border-radius:10px;padding:16px;border:1px solid var(--bd);display:flex;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">&#x1F4A1;</div>
+          <div style="font-size:14px;color:var(--t2);line-height:1.7;">
+            <strong style="color:var(--t);">三数取中法</strong>从首、中、尾三个元素中选取中间值作为基准，有效避免了最坏情况。时间复杂度 O(n log n)，空间 O(log n)。适用场景：大规模随机数据排序。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==========================================
+     效果图2：Dashboard 增强版
+     ========================================== -->
+<div style="background:linear-gradient(90deg,#a970ff,#6c9eff);color:#fff;padding:7px 20px;font-size:12px;font-weight:600;text-align:center;">
+  AI 风格增强版 · 控制台（侧边栏统计图 + 代码卡片 + 悬浮动效）
+</div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a href="#" class="logo"><span class="logo-i">&lt;/&gt;</span><span>AiCodeHub</span></a>
+    <div class="nav-r">
+      <a href="#" class="nav-a on" style="color:var(--ac);">我的代码</a>
+      <a href="#" class="nav-a">探索</a>
+      <button class="btn" style="display:flex;align-items:center;gap:4px;">+ 新建</button>
+      <button class="btn-o" style="padding:7px 10px;font-size:16px;">&#x1F319;</button>
+      <div class="av">Z</div>
+    </div>
+  </div>
+</nav>
+
+<div class="dsh">
+  <aside class="sd">
+    <div class="sc">
+      <div class="sh">筛选</div>
+      <div class="si on">全部代码</div>
+      <div class="si">我的收藏</div>
+    </div>
+    <div class="sc">
+      <div class="sh">语言分布</div>
+      <div class="bars">
+        <div class="bi"><div class="bf" style="height:70px;background:#ED8B00;"></div><div class="bl">Java</div></div>
+        <div class="bi"><div class="bf" style="height:50px;background:#3776AB;"></div><div class="bl">Py</div></div>
+        <div class="bi"><div class="bf" style="height:35px;background:#F7DF1E;"></div><div class="bl">JS</div></div>
+        <div class="bi"><div class="bf" style="height:20px;background:#00ADD8;"></div><div class="bl">Go</div></div>
+        <div class="bi"><div class="bf" style="height:15px;background:#336791;"></div><div class="bl">SQL</div></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sh">统计</div>
+      <div style="display:flex;justify-content:space-around;text-align:center;">
+        <div><div style="font-size:20px;font-weight:700;color:var(--t);">34</div><div style="font-size:11px;color:var(--t3);">片段</div></div>
+        <div><div style="font-size:20px;font-weight:700;color:var(--t);">15</div><div style="font-size:11px;color:var(--t3);">标签</div></div>
+        <div><div style="font-size:20px;font-weight:700;color:var(--t);">5</div><div style="font-size:11px;color:var(--t3);">语言</div></div>
+      </div>
+    </div>
+  </aside>
+  <main class="mn">
+    <div class="cd">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="pill" style="background:#ED8B00;">Java</span>
+        <span style="font-size:12px;color:var(--t3);">3天前</span>
+      </div>
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--t);">快速排序 — 三数取中优化版</h3>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.5;">采用分治策略，选取基准值将数组划分为两个子序列。三数取中法避免了最坏情况。</p>
+      <div class="cp"><span class="kw">public static void</span> <span class="fn">sort</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> l, <span class="tp">int</span> r) {
+    <span class="kw">if</span> (l >= r) <span class="kw">return</span>;
+    <span class="cm">// 三数取中</span>
+    <span class="tp">int</span> mid = l + ((r - l) >> <span class="nm">1</span>);</div>
+      <div style="display:flex;gap:16px;font-size:13px;color:var(--t3);"><span>&#x2B50; 67</span><span>&#x1F4AC; 23</span><span>&#x1F441; 456</span></div>
+    </div>
+    <div class="cd">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="pill" style="background:#3776AB;">Python</span>
+        <span style="font-size:12px;color:var(--t3);">5天前</span>
+      </div>
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--t);">Python装饰器 — 从基础到带参装饰器</h3>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.5;">装饰器本质是高阶函数，接收函数作为参数返回增强后的函数。</p>
+      <div class="cp"><span class="kw">def</span> <span class="fn">retry</span>(max_attempts=<span class="nm">3</span>):
+    <span class="kw">def</span> <span class="fn">decorator</span>(func):
+        <span class="an">@functools.wraps</span>(func)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(*a, **kw):
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(max_attempts):
+                <span class="kw">try</span>: <span class="kw">return</span> func(*a, **kw)</div>
+      <div style="display:flex;gap:16px;font-size:13px;color:var(--t3);"><span>&#x2B50; 52</span><span>&#x1F4AC; 16</span><span>&#x1F441; 345</span></div>
+    </div>
+  </main>
+</div>
+
+<!-- ==========================================
+     效果图3：详情页增强版
+     ========================================== -->
+<div style="background:linear-gradient(90deg,#10a37f,#a970ff);color:#fff;padding:7px 20px;font-size:12px;font-weight:600;text-align:center;">
+  AI 风格增强版 · 详情页（行号 + 彩色代码 + AI对话 + 评论）
+</div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a href="#" class="logo"><span class="logo-i">&lt;/&gt;</span><span>AiCodeHub</span></a>
+    <div class="nav-r">
+      <a href="#" class="nav-a">探索</a>
+      <a href="#" class="nav-a">控制台</a>
+      <button class="btn-o" style="padding:7px 10px;font-size:16px;">&#x1F319;</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dsh">
+  <div class="mn">
+    <div class="cd">
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:8px;color:var(--t);letter-spacing:-.02em;">快速排序 — 三数取中优化版</h1>
+      <p style="color:var(--t2);margin-bottom:12px;line-height:1.6;font-size:14px;">采用分治策略，选取基准值将数组划分为两个子序列，递归排序。三数取中法从首、中、尾三个元素中选取中间值作为基准，有效避免最坏情况。</p>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;">
+        <span class="tab on" style="padding:4px 12px;font-size:12px;">Java</span>
+        <span style="color:var(--t3);font-size:13px;">codebot</span>
+        <span style="color:var(--t3);font-size:13px;">&#x1F441; 456</span>
+      </div>
+      <div class="cb">
+        <div class="cb-t">
+          <span>Java · QuickSort.java</span>
+          <span style="cursor:pointer;color:var(--ac);">复制代码</span>
+        </div>
+        <div class="cb-c"><span class="ln"> 1</span><span class="kw">public class</span> <span class="tp">QuickSort</span> {
+<span class="ln"> 2</span>
+<span class="ln"> 3</span>    <span class="kw">public static void</span> <span class="fn">sort</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> left, <span class="tp">int</span> right) {
+<span class="ln"> 4</span>        <span class="kw">if</span> (left >= right) <span class="kw">return</span>;
+<span class="ln"> 5</span>
+<span class="ln"> 6</span>        <span class="cm">// 三数取中：选取首、中、尾的中位数作为pivot</span>
+<span class="ln"> 7</span>        <span class="tp">int</span> mid = left + ((right - left) >> <span class="nm">1</span>);
+<span class="ln"> 8</span>        <span class="kw">if</span> (arr[left] > arr[mid])  <span class="fn">swap</span>(arr, left, mid);
+<span class="ln"> 9</span>        <span class="kw">if</span> (arr[left] > arr[right]) <span class="fn">swap</span>(arr, left, right);
+<span class="ln">10</span>        <span class="kw">if</span> (arr[mid] > arr[right])  <span class="fn">swap</span>(arr, mid, right);
+<span class="ln">11</span>        <span class="fn">swap</span>(arr, mid, right);
+<span class="ln">12</span>
+<span class="ln">13</span>        <span class="cm">// Lomuto分区</span>
+<span class="ln">14</span>        <span class="tp">int</span> pivot = arr[right];
+<span class="ln">15</span>        <span class="tp">int</span> i = left - <span class="nm">1</span>;
+<span class="ln">16</span>        <span class="kw">for</span> (<span class="tp">int</span> j = left; j < right; j++) {
+<span class="ln">17</span>            <span class="kw">if</span> (arr[j] <= pivot) <span class="fn">swap</span>(arr, ++i, j);
+<span class="ln">18</span>        }
+<span class="ln">19</span>        <span class="fn">swap</span>(arr, i + <span class="nm">1</span>, right);
+<span class="ln">20</span>
+<span class="ln">21</span>        <span class="fn">sort</span>(arr, left, i);
+<span class="ln">22</span>        <span class="fn">sort</span>(arr, i + <span class="nm">2</span>, right);
+<span class="ln">23</span>    }
+<span class="ln">24</span>}</div>
+      </div>
+    </div>
+
+    <!-- AI分析（对话风格） -->
+    <div class="cd">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--t);">&#x1F916; AI 分析</h3>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <span class="tab on">代码解释</span>
+        <span class="tab">优化建议</span>
+        <span class="tab">生成测试</span>
+      </div>
+      <!-- 对话气泡风格 -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">&#x1F916;</div>
+        <div style="background:var(--s3);border-radius:12px 12px 12px 0;padding:14px 18px;border:1px solid var(--bd);flex:1;">
+          <p style="font-size:14px;color:var(--t2);line-height:1.7;">
+            <strong style="color:var(--t);">核心思想：</strong>这段代码实现了快速排序的分区操作。使用<strong style="color:var(--ac);">三数取中法</strong>选取基准值，避免已排序数组导致 O(n²) 最坏情况。
+          </p>
+          <p style="font-size:14px;color:var(--t2);line-height:1.7;margin-top:8px;">
+            <strong style="color:var(--t);">复杂度：</strong>平均 O(n log n)，最坏 O(n²)，空间 O(log n)。
+          </p>
+          <p style="font-size:14px;color:var(--t2);line-height:1.7;margin-top:8px;">
+            <strong style="color:var(--t);">适用场景：</strong>大规模随机数据排序，实际性能优于归并排序。
+          </p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--s3);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--t2);">你</div>
+        <div style="background:var(--s3);border-radius:12px 12px 0 12px;padding:14px 18px;border:1px solid var(--bd);flex:1;">
+          <p style="font-size:14px;color:var(--t2);line-height:1.7;">能否给出这个算法的时间复杂度推导过程？</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 评论 -->
+    <div class="cd">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--t);">&#x1F4AC; 评论 (3)</h3>
+      <div class="cmt"><div class="ch"><strong>dev_wang</strong><span>2天前</span></div><div class="cb2">三数取中的实现很优雅，学习了！面试直接用这个思路。</div></div>
+      <div class="cmt"><div class="ch"><strong>coder_li</strong><span>1天前</span></div><div class="cb2">建议加入插入排序优化，子数组长度小于10时切换，实际效果更好。</div></div>
+      <div class="cmt"><div class="ch"><strong>algo_zhao</strong><span>12小时前</span></div><div class="cb2">写得很清晰 👍 面试必考题，收藏了。</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 本次改进 ===== -->
+<div style="background:#111;padding:30px;border-top:1px solid #2a2a2a;">
+  <h3 style="margin-bottom:16px;font-size:18px;color:#f0f0f0;">本次增强改进点：</h3>
+  <ol style="line-height:2.4;font-size:14px;color:#a0a0a0;padding-left:20px;">
+    <li><strong style="color:#f0f0f0;">背景光晕效果</strong>：绿色/紫色/蓝色渐变光晕，增加层次感和科技感</li>
+    <li><strong style="color:#f0f0f0;">网格背景纹理</strong>：微妙的点阵网格，增加视觉深度</li>
+    <li><strong style="color:#f0f0f0;">脉冲动画圆点</strong>：装饰性元素，增加动感</li>
+    <li><strong style="color:#f0f0f0;">渐入动画</strong>：页面元素依次渐入，提升档次感</li>
+    <li><strong style="color:#f0f0f0;">AI 对话气泡</strong>：详情页用对话气泡展示 AI 分析，像 ChatGPT 一样</li>
+    <li><strong style="color:#f0f0f0;">垂直装饰线</strong>：Hero 区域的装饰线条，增加设计感</li>
+    <li><strong style="color:#f0f0f0;">Badge 标签</strong>：绿色脉冲点 + "DeepSeek AI 驱动" 信息条</li>
+    <li><strong style="color:#f0f0f0;">多层光晕</strong>：3个不同颜色的光晕叠加，背景更有层次</li>
+    <li><strong style="color:#f0f0f0;">卡片悬浮 + 边框变色</strong>：鼠标悬停时上移 + 边框变亮</li>
+  </ol>
+  <p style="margin-top:20px;color:#10a37f;font-weight:600;font-size:16px;">效果怎么样？不满意的地方告诉我，继续调整。</p>
+</div>
+
+</body>
+</html>

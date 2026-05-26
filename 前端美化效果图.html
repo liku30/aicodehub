@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiCodeHub - 前端美化效果预览</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface-hover: #fafafa;
+      --border: rgba(0,0,0,0.06);
+      --text: #1d1d1f;
+      --text2: #6e6e73;
+      --text3: #86868b;
+      --primary: #007aff;
+      --primary-light: rgba(0,122,255,0.08);
+      --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== 导航栏 ===== */
+    .nav {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo-icon { color: var(--primary); font-size: 20px; }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-link { color: var(--text2); font-size: 14px; text-decoration: none; }
+    .nav-link:hover { color: var(--text); }
+    .theme-btn {
+      background: none; border: 1px solid var(--border); border-radius: 50%;
+      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; transition: all 0.2s;
+    }
+    .theme-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--gradient); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--primary); color: #fff; border: none;
+      padding: 8px 20px; border-radius: 9999px; font-size: 14px;
+      font-weight: 500; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary:hover { background: #0066d6; }
+
+    /* ===== 首页 ===== */
+    .hero {
+      text-align: center;
+      padding: 120px 20px 80px;
+      background: var(--bg);
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.03em;
+    }
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text2);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 48px; }
+
+    /* ===== Dashboard ===== */
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; gap: 20px; }
+    .sidebar { width: 200px; flex-shrink: 0; }
+    .sidebar-card {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar-title {
+      font-size: 12px; color: var(--text3); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+    }
+    .sidebar-item {
+      padding: 8px 12px; border-radius: 8px; font-size: 14px;
+      color: var(--text2); cursor: pointer; transition: all 0.15s;
+    }
+    .sidebar-item:hover { background: var(--primary-light); color: var(--primary); }
+    .sidebar-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+
+    .content { flex: 1; min-width: 0; }
+
+    /* ===== 片段卡片 ===== */
+    .snippet-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .snippet-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+    .snippet-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .lang-tag {
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+    .snippet-time { font-size: 12px; color: var(--text3); }
+    .snippet-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .snippet-desc {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .code-preview {
+      background: #282c34;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      color: #abb2bf;
+      line-height: 1.5;
+      overflow: hidden;
+      max-height: 120px;
+      margin-bottom: 12px;
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    }
+    .code-preview .keyword { color: #c678dd; }
+    .code-preview .type { color: #e5c07b; }
+    .code-preview .func { color: #61afef; }
+    .code-preview .string { color: #98c379; }
+    .code-preview .comment { color: #5c6370; font-style: italic; }
+    .code-preview .number { color: #d19a66; }
+    .snippet-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text3);
+    }
+
+    /* ===== 详情页代码块 ===== */
+    .code-block {
+      background: #282c34;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #21252b;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #636d83;
+      font-size: 13px;
+    }
+    .code-body {
+      padding: 16px;
+      color: #abb2bf;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .code-body .keyword { color: #c678dd; font-weight: 500; }
+    .code-body .type { color: #e5c07b; }
+    .code-body .func { color: #61afef; }
+    .code-body .string { color: #98c379; }
+    .code-body .comment { color: #5c6370; font-style: italic; }
+    .code-body .number { color: #d19a66; }
+    .code-body .annotation { color: #e06c75; }
+    .code-body .line-num { color: #4b5263; user-select: none; margin-right: 16px; text-align: right; display: inline-block; min-width: 20px; }
+
+    /* ===== 标签 ===== */
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ===== 页面标题 ===== */
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* ===== 评论 ===== */
+    .comment-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .comment-header span { color: var(--text3); font-size: 12px; }
+    .comment-item p { color: var(--text2); font-size: 14px; line-height: 1.6; }
+
+    /* ===== 分隔线 ===== */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== 效果图1：首页 ===== -->
+<div style="border-bottom: 3px solid #007aff; margin-bottom: 40px;">
+  <div style="background: #007aff; color: white; padding: 8px 20px; font-size: 13px; font-weight: 600;">
+    效果图1：首页（Hero区域 + 特性卡片）
+  </div>
+  <div class="hero">
+    <div class="hero-badge">AI 驱动的代码管理平台</div>
+    <h1>让代码管理<br><em>更智能</em></h1>
+    <p>存储、组织、分析你的代码片段。<br>集成 DeepSeek 大模型，提供代码解释、优化建议和测试用例生成。</p>
+    <div class="hero-btns">
+      <button class="btn-primary" style="padding: 14px 32px; font-size: 16px;">免费开始使用</button>
+      <button style="padding: 14px 32px; font-size: 16px; background: none; border: 1px solid #dcdfe6; border-radius: 9999px; cursor: pointer;">浏览代码库</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 效果图2：Dashboard ===== -->
+<div style="border-bottom: 3px solid #007aff; margin-bottom: 40px;">
+  <div style="background: #007aff; color: white; padding: 8px 20px; font-size: 13px; font-weight: 600;">
+    效果图2：控制台（侧边栏 + 代码片段列表 + 语法高亮）
+  </div>
+  <div class="nav">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span>AiCodeHub</span>
+      </a>
+      <div class="nav-links">
+        <a href="#" class="nav-link" style="color: #007aff; font-weight: 500;">我的代码</a>
+        <a href="#" class="nav-link">探索</a>
+        <button class="btn-primary" style="padding: 6px 16px; font-size: 13px;">+ 新建</button>
+        <button class="theme-toggle" style="background:none;border:1px solid rgba(0,0,0,0.06);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x1F319;</button>
+        <div class="avatar">Z</div>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">筛选</div>
+        <div class="sidebar-item active">全部代码</div>
+        <div class="sidebar-item">我的收藏</div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">语言</div>
+        <div class="sidebar-item">Java</div>
+        <div class="sidebar-item">Python</div>
+        <div class="sidebar-item">JavaScript</div>
+        <div class="sidebar-item">Go</div>
+        <div class="sidebar-item">SQL</div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="snippet-card">
+        <div class="snippet-top">
+          <span class="lang-tag" style="background:#ED8B00">Java</span>
+          <span class="snippet-time">3天前</span>
+        </div>
+        <div class="snippet-title">快速排序 — 三数取中优化版</div>
+        <div class="snippet-desc">算法原理：快速排序采用分治策略，选取基准值将数组划分为两个子序列...</div>
+        <div class="code-preview"><span class="keyword">public static void</span> <span class="func">sort</span>(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right) {
+    <span class="keyword">if</span> (left >= right) <span class="keyword">return</span>;
+    <span class="comment">// 三数取中</span>
+    <span class="type">int</span> mid = left + ((right - left) >> <span class="number">1</span>);
+    <span class="keyword">if</span> (arr[left] > arr[mid]) swap(arr, left, mid);
+}</div>
+        <div class="snippet-stats">
+          <span>&#x2B50; 67</span>
+          <span>&#x1F4AC; 23</span>
+          <span>&#x1F441; 456</span>
+        </div>
+      </div>
+
+      <div class="snippet-card">
+        <div class="snippet-top">
+          <span class="lang-tag" style="background:#3776AB">Python</span>
+          <span class="snippet-time">5天前</span>
+        </div>
+        <div class="snippet-title">Python装饰器 — 从基础到带参装饰器</div>
+        <div class="snippet-desc">装饰器本质上是高阶函数，接收一个函数作为参数，返回一个增强后的函数...</div>
+        <div class="code-preview"><span class="keyword">def</span> <span class="func">retry</span>(max_attempts=<span class="number">3</span>, delay=<span class="number">1.0</span>):
+    <span class="keyword">def</span> <span class="func">decorator</span>(func):
+        <span class="annotation">@functools.wraps</span>(func)
+        <span class="keyword">def</span> <span class="func">wrapper</span>(*args, **kwargs):
+            <span class="keyword">for</span> attempt <span class="keyword">in</span> <span class="func">range</span>(max_attempts):
+                <span class="keyword">try</span>: <span class="keyword">return</span> func(*args, **kwargs)
+                <span class="keyword">except</span> <span class="type">Exception</span> <span class="keyword">as</span> e:
+                    <span class="keyword">if</span> attempt == max_attempts - <span class="number">1</span>: <span class="keyword">raise</span></div>
+        <div class="snippet-stats">
+          <span>&#x2B50; 52</span>
+          <span>&#x1F4AC; 16</span>
+          <span>&#x1F441; 345</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== 效果图3：详情页 ===== -->
+<div style="border-bottom: 3px solid #007aff; margin-bottom: 40px;">
+  <div style="background: #007aff; color: white; padding: 8px 20px; font-size: 13px; font-weight: 600;">
+    效果图3：代码详情页（语法高亮 + AI分析 + 评论）
+  </div>
+  <div class="nav">
+    <div class="nav-inner">
+      <a href="#" class="logo"><span class="logo-icon">&lt;/&gt;</span><span>AiCodeHub</span></a>
+      <div class="nav-links">
+        <a href="#" class="nav-link">探索</a>
+        <a href="#" class="nav-link">控制台</a>
+        <button class="theme-toggle" style="background:none;border:1px solid rgba(0,0,0,0.06);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x1F319;</button>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard">
+    <div style="flex:1; min-width:0">
+      <div class="card" style="background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:16px;">
+        <h1 class="page-title">快速排序 — 三数取中优化版</h1>
+        <p style="color:var(--text2);margin-bottom:12px;line-height:1.6">算法原理：快速排序采用分治策略，选取基准值(pivot)将数组划分为"小于基准"和"大于基准"两个子序列，递归排序。</p>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px">
+          <span class="tag">Java</span>
+          <span style="color:var(--text3);font-size:13px">作者：codebot</span>
+          <span style="color:var(--text3);font-size:13px">2026-05-25</span>
+          <span style="color:var(--text3);font-size:13px">&#x1F441; 456</span>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Java</span>
+            <span style="cursor:pointer;color:#007aff">复制代码</span>
+          </div>
+          <div class="code-body"><span class="line-num"> 1</span><span class="keyword">public class</span> <span class="type">QuickSort</span> {
+<span class="line-num"> 2</span>
+<span class="line-num"> 3</span>    <span class="keyword">public static void</span> <span class="func">sort</span>(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right) {
+<span class="line-num"> 4</span>        <span class="keyword">if</span> (left >= right) <span class="keyword">return</span>;
+<span class="line-num"> 5</span>
+<span class="line-num"> 6</span>        <span class="comment">// 三数取中：选取首、中、尾的中位数作为pivot</span>
+<span class="line-num"> 7</span>        <span class="type">int</span> mid = left + ((right - left) >> <span class="number">1</span>);
+<span class="line-num"> 8</span>        <span class="keyword">if</span> (arr[left] > arr[mid])  <span class="func">swap</span>(arr, left, mid);
+<span class="line-num"> 9</span>        <span class="keyword">if</span> (arr[left] > arr[right]) <span class="func">swap</span>(arr, left, right);
+<span class="line-num">10</span>        <span class="keyword">if</span> (arr[mid] > arr[right])  <span class="func">swap</span>(arr, mid, right);
+<span class="line-num">11</span>        <span class="func">swap</span>(arr, mid, right);
+<span class="line-num">12</span>
+<span class="line-num">13</span>        <span class="comment">// Lomuto分区</span>
+<span class="line-num">14</span>        <span class="type">int</span> pivot = arr[right];
+<span class="line-num">15</span>        <span class="type">int</span> i = left - <span class="number">1</span>;
+<span class="line-num">16</span>        <span class="keyword">for</span> (<span class="type">int</span> j = left; j < right; j++) {
+<span class="line-num">17</span>            <span class="keyword">if</span> (arr[j] <= pivot) <span class="func">swap</span>(arr, ++i, j);
+<span class="line-num">18</span>        }
+<span class="line-num">19</span>        <span class="func">swap</span>(arr, i + <span class="number">1</span>, right);
+<span class="line-num">20</span>
+<span class="line-num">21</span>        <span class="func">sort</span>(arr, left, i);
+<span class="line-num">22</span>        <span class="func">sort</span>(arr, i + <span class="number">2</span>, right);
+<span class="line-num">23</span>    }
+<span class="line-num">24</span>}</div>
+        </div>
+      </div>
+
+      <!-- AI分析 -->
+      <div class="card" style="background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:16px;">
+        <h3 class="section-title">&#x1F916; AI 分析</h3>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <span class="tag" style="cursor:pointer">代码解释</span>
+          <span class="tag" style="background:rgba(0,122,255,0.05);color:var(--text2);cursor:pointer">优化建议</span>
+          <span class="tag" style="background:rgba(0,122,255,0.05);color:var(--text2);cursor:pointer">生成测试</span>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--radius);padding:20px;line-height:1.8;color:var(--text2);font-size:14px">
+          <p><strong style="color:var(--text)">算法概述：</strong>这段代码实现了快速排序算法，使用了三数取中法优化基准选择。</p>
+          <p style="margin-top:8px"><strong style="color:var(--text)">时间复杂度：</strong>平均 O(n log n)，最坏 O(n²)</p>
+          <p style="margin-top:8px"><strong style="color:var(--text)">空间复杂度：</strong>O(log n)，递归调用栈</p>
+          <p style="margin-top:8px"><strong style="color:var(--text)">优化亮点：</strong>三数取中法（medianOfThree）选择基准，有效避免了已排序数组上的最坏情况。</p>
+        </div>
+      </div>
+
+      <!-- 评论 -->
+      <div class="card" style="background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);">
+        <h3 class="section-title">&#x1F4AC; 评论 (3)</h3>
+        <div class="comment-item">
+          <div class="comment-header"><strong>dev_wang</strong><span>2天前</span></div>
+          <p>三数取中的实现很优雅，学习了！</p>
+        </div>
+        <div class="comment-item">
+          <div class="comment-header"><strong>coder_li</strong><span>1天前</span></div>
+          <p>建议可以考虑加入插入排序的优化，当子数组长度小于10时切换为插入排序。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 对比说明 ===== -->
+<div style="background:#f0f0f0;padding:30px;margin-top:40px;">
+  <h3 style="margin-bottom:16px;font-size:18px;">本次美化改进点：</h3>
+  <ol style="line-height:2;font-size:14px;color:#666;padding-left:20px;">
+    <li><strong>代码语法高亮</strong>：用不同颜色标记关键字、类型、函数、字符串、注释（目前是纯灰白色）</li>
+    <li><strong>代码行号</strong>：详情页显示行号，方便阅读和讲解</li>
+    <li><strong>磨砂玻璃导航栏</strong>：backdrop-filter 实现毛玻璃效果</li>
+    <li><strong>渐变文字</strong>：首页标题使用紫色渐变</li>
+    <li><strong>卡片悬浮效果</strong>：鼠标悬停时卡片微上移+阴影加深</li>
+    <li><strong>代码截断遮罩</strong>：片段卡片的代码预览用渐变遮罩</li>
+    <li><strong>深色模式切换按钮</strong>：导航栏右侧加了月亮图标</li>
+  </ol>
+  <p style="margin-top:16px;color:#007aff;font-weight:500;">你觉得这个效果怎么样？满意的话我就开始改代码。</p>
+</div>
+
+</body>
+</html>
