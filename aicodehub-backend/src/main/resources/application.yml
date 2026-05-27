@@ -40,10 +40,11 @@ jwt:
   secret: AiCodeHubSecretKey2024ThisIsAVeryLongSecretKeyForJWTTokenGeneration
   expiration: 604800000  # 7天，单位毫秒
 
-# DeepSeek AI配置（第二阶段启用）
+# DeepSeek AI配置
+# 获取API Key: https://platform.deepseek.com/api_keys
 ai:
   deepseek:
-    api-key: your-deepseek-api-key  # 先留着，后面再填
+    api-key: sk-ccc71596c14a4751800002f78d35cff3
     base-url: https://api.deepseek.com
     model: deepseek-chat
 

@@ -30,12 +30,12 @@
             <span>{{ snippet.language }}</span>
             <span style="cursor:pointer;color:var(--primary);" @click="copyCode">复制代码</span>
           </div>
-          <div class="code-block-body" v-html="highlightedCode"></div>
+          <pre class="code-block-body"><code>{{ snippet.codeContent }}</code></pre>
         </div>
       </div>
 
       <!-- 操作按钮 -->
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
         <button class="btn" :class="isFavorited ? 'btn-primary' : 'btn-ghost'" @click="handleFavorite">
           {{ isFavorited ? '★ 已收藏' : '☆ 收藏' }} {{ snippet.likeCount || 0 }}
         </button>
@@ -45,27 +45,53 @@
         </template>
       </div>
 
-      <!-- AI 分析（对话风格） -->
+      <!-- ===== AI 分析区 ===== -->
       <div class="card animate-in animate-d1">
         <h3 class="section-label">&#x1F916; AI 分析</h3>
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <span class="tab-tag active">代码解释</span>
-          <span class="tab-tag">优化建议</span>
-          <span class="tab-tag">生成测试</span>
+
+        <!-- AI 功能 Tab -->
+        <div class="ai-tabs-wrap">
+          <span v-for="tab in aiTabs" :key="tab.key"
+                class="tab-tag"
+                :class="{ active: activeAiTab === tab.key }"
+                @click="switchAiTab(tab.key)">
+            {{ tab.icon }} {{ tab.label }}
+          </span>
         </div>
-        <div class="ai-result-bubble">
-          <div class="ai-avatar">&#x1F4A1;</div>
-          <div class="ai-bubble-ai">
-            <p><strong style="color:var(--text);">核心思想：</strong>这段代码实现了核心算法逻辑。使用<strong style="color:var(--primary);">高效的数据结构</strong>和<strong style="color:var(--primary);">优化的算法策略</strong>。</p>
-            <p style="margin-top:8px;"><strong style="color:var(--text);">复杂度：</strong>时间 O(n log n)，空间 O(log n)。</p>
-            <p style="margin-top:8px;"><strong style="color:var(--text);">适用场景：</strong>大规模数据处理，面试高频考点。</p>
+
+        <!-- 翻译目标语言选择 -->
+        <div v-if="activeAiTab === 'translate'" style="margin:12px 0;">
+          <el-select v-model="targetLang" placeholder="选择目标语言" size="small" style="width:180px;">
+            <el-option v-for="l in languages" :key="l" :label="l" :value="l" :disabled="l === snippet.language" />
+          </el-select>
+        </div>
+
+        <!-- AI 结果展示 -->
+        <div v-if="aiLoading || aiResult" class="ai-result-area">
+          <div class="ai-result-bubble">
+            <div class="ai-avatar">&#x1F4A1;</div>
+            <div class="ai-bubble-ai">
+              <!-- 加载中 -->
+              <div v-if="aiLoading && !aiResult" class="ai-loading">
+                <span class="ai-dots"><i></i><i></i><i></i></span>
+                <span>AI 正在分析中...</span>
+              </div>
+              <!-- 结果 -->
+              <div v-if="aiResult" class="ai-result-text" v-html="formatAiResult(aiResult)"></div>
+              <!-- 流式光标 -->
+              <span v-if="aiStreaming" class="ai-cursor">|</span>
+            </div>
           </div>
         </div>
-        <div class="ai-result-bubble" style="margin-top:12px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--text2);">你</div>
-          <div class="ai-bubble-user">
-            <p style="font-size:14px;color:var(--text2);">能否给出时间复杂度的推导过程？</p>
-          </div>
+
+        <!-- 未调用时的提示 -->
+        <div v-if="!aiLoading && !aiResult" class="ai-hint">
+          <p>点击上方 Tab 对当前代码进行 AI 分析</p>
+        </div>
+
+        <!-- 重新分析按钮 -->
+        <div v-if="aiResult && !aiLoading" style="margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" @click="runAiAnalysis">重新分析</button>
         </div>
       </div>
 
@@ -98,28 +124,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getSnippetDetail, deleteSnippet, toggleFavorite } from '@/api/snippet'
 import { getComments, addComment } from '@/api/comment'
+import { aiExplainStream, aiOptimizeStream, aiTestStream, aiTranslateStream, aiDocStream, aiReviewStream } from '@/api/ai'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import hljs from 'highlight.js/lib/core'
-import java from 'highlight.js/lib/languages/java'
-import python from 'highlight.js/lib/languages/python'
-import javascript from 'highlight.js/lib/languages/javascript'
-import typescript from 'highlight.js/lib/languages/typescript'
-import go from 'highlight.js/lib/languages/go'
-import sql from 'highlight.js/lib/languages/sql'
-import cpp from 'highlight.js/lib/languages/cpp'
-import rust from 'highlight.js/lib/languages/rust'
-import shell from 'highlight.js/lib/languages/shell'
-
-// 注册语言
-hljs.registerLanguage('java', java)
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('typescript', typescript)
-hljs.registerLanguage('go', go)
-hljs.registerLanguage('sql', sql)
-hljs.registerLanguage('cpp', cpp)
-hljs.registerLanguage('rust', rust)
-hljs.registerLanguage('shell', shell)
 
 const route = useRoute()
 const router = useRouter()
@@ -130,31 +136,124 @@ const newComment = ref('')
 const isFavorited = ref(false)
 const isDark = ref(true)
 
+// AI 相关状态
+const activeAiTab = ref('explain')
+const aiResult = ref('')
+const aiLoading = ref(false)
+const aiStreaming = ref(false)
+const targetLang = ref('Python')
+
+const languages = ['Java', 'Python', 'JavaScript', 'TypeScript', 'Go', 'C/C++', 'Rust', 'SQL', 'Shell']
+
+const aiTabs = [
+  { key: 'explain', label: '代码解释', icon: '💡' },
+  { key: 'optimize', label: '优化建议', icon: '⚡' },
+  { key: 'test', label: '生成测试', icon: '🧪' },
+  { key: 'translate', label: '代码翻译', icon: '🔄' },
+  { key: 'doc', label: '生成文档', icon: '📝' },
+  { key: 'review', label: '代码审查', icon: '🔍' },
+]
+
 const isOwner = computed(() => userStore.isLoggedIn() && snippet.value?.authorName === userStore.userInfo?.username)
 
-const highlightedCode = computed(() => {
-  if (!snippet.value?.codeContent) return ''
-  const lang = snippet.value.language?.toLowerCase()
-  const langMap = { 'c++': 'cpp', 'c/c++': 'cpp', 'shell': 'shell', 'bash': 'shell' }
-  const mappedLang = langMap[lang] || lang
-  try {
-    if (hljs.getLanguage(mappedLang)) {
-      return hljs.highlight(snippet.value.codeContent, { language: mappedLang }).value
-    }
-    return hljs.highlightAuto(snippet.value.codeContent).value
-  } catch { return snippet.value.codeContent }
-})
-
 function formatTime(t) { return t ? new Date(t).toLocaleDateString() : '' }
+
 function toggleTheme() {
   isDark.value = !isDark.value
   document.documentElement.setAttribute('data-theme', isDark.value ? '' : 'light')
   localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
 }
+
+// 切换 AI Tab
+function switchAiTab(tab) {
+  activeAiTab.value = tab
+  aiResult.value = ''
+  runAiAnalysis()
+}
+
+// 执行 AI 分析（SSE 流式）
+function runAiAnalysis() {
+  if (!snippet.value?.codeContent) return
+  if (!userStore.isLoggedIn()) {
+    ElMessage.warning('请先登录后使用 AI 功能')
+    router.push('/login')
+    return
+  }
+
+  aiResult.value = ''
+  aiLoading.value = true
+  aiStreaming.value = false
+
+  const data = {
+    code: snippet.value.codeContent,
+    language: snippet.value.language || 'Java'
+  }
+
+  const onChunk = (chunk) => {
+    if (!aiStreaming.value) {
+      aiLoading.value = false
+      aiStreaming.value = true
+    }
+    aiResult.value += chunk
+  }
+
+  const onDone = () => {
+    aiLoading.value = false
+    aiStreaming.value = false
+  }
+
+  const onError = (err) => {
+    aiLoading.value = false
+    aiStreaming.value = false
+    if (!aiResult.value) {
+      aiResult.value = 'AI 分析失败，请稍后再试。'
+    }
+    console.error('AI 分析错误:', err)
+  }
+
+  switch (activeAiTab.value) {
+    case 'explain':
+      aiExplainStream(data, onChunk, onDone, onError)
+      break
+    case 'optimize':
+      aiOptimizeStream(data, onChunk, onDone, onError)
+      break
+    case 'test':
+      aiTestStream(data, onChunk, onDone, onError)
+      break
+    case 'translate':
+      aiTranslateStream({ ...data, toLang: targetLang.value }, onChunk, onDone, onError)
+      break
+    case 'doc':
+      aiDocStream(data, onChunk, onDone, onError)
+      break
+    case 'review':
+      aiReviewStream(data, onChunk, onDone, onError)
+      break
+  }
+}
+
+// 格式化 AI 结果（简单的换行和代码块处理）
+function formatAiResult(text) {
+  if (!text) return ''
+  // 转义HTML
+  let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // 代码块 ```...```
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre class="ai-code">$2</pre>')
+  // 行内代码 `...`
+  html = html.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
+  // 加粗 **...**
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  // 换行
+  html = html.replace(/\n/g, '<br>')
+  return html
+}
+
 async function loadData() {
   try { const r = await getSnippetDetail(route.params.id); snippet.value = r.data } catch { router.push('/explore') }
   try { const r = await getComments(route.params.id); comments.value = r.data || [] } catch {}
 }
+
 async function handleFavorite() {
   if (!userStore.isLoggedIn()) { router.push('/login'); return }
   try {
@@ -164,14 +263,17 @@ async function handleFavorite() {
     ElMessage.success(r.message)
   } catch {}
 }
+
 async function handleDelete() {
   try { await ElMessageBox.confirm('确定删除？', '提示', { type: 'warning' }) } catch { return }
   try { await deleteSnippet(snippet.value.id); ElMessage.success('已删除'); router.push('/dashboard') } catch {}
 }
+
 async function submitComment() {
   if (!newComment.value.trim()) return
   try { await addComment({ snippetId: snippet.value.id, content: newComment.value }); ElMessage.success('评论成功'); newComment.value = ''; loadData() } catch {}
 }
+
 function copyCode() {
   const text = snippet.value?.codeContent || ''
   navigator.clipboard?.writeText(text).then(() => ElMessage.success('已复制')).catch(() => {
@@ -179,6 +281,7 @@ function copyCode() {
     ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ElMessage.success('已复制')
   })
 }
+
 onMounted(() => {
   loadData()
   const saved = localStorage.getItem('theme')
@@ -200,17 +303,40 @@ onMounted(() => {
 .detail-desc { font-size: 14px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
 .detail-meta { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--text3); }
 .section-label { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
-.tab-tag { display: inline-block; padding: 5px 14px; border-radius: 9999px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); color: var(--text2); }
+.tab-tag { display: inline-block; padding: 5px 14px; border-radius: 9999px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); color: var(--text2); transition: all 0.15s; }
 .tab-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.tab-tag:hover { border-color: var(--primary); }
+.btn-sm { padding: 6px 16px; font-size: 13px; }
 
+/* AI Tabs */
+.ai-tabs-wrap { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+
+/* AI 结果区域 */
+.ai-result-area { margin-top: 4px; }
 .ai-result-bubble { display: flex; gap: 10px; }
 .ai-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
-.ai-bubble-ai { background: var(--surface2); border-radius: 12px 12px 12px 0; padding: 14px 18px; border: 1px solid var(--border); flex: 1; }
-.ai-bubble-user { background: var(--surface2); border-radius: 12px 12px 0 12px; padding: 14px 18px; border: 1px solid var(--border); flex: 1; }
-.ai-bubble-ai p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.ai-bubble-ai { background: var(--surface2); border-radius: 12px 12px 12px 0; padding: 14px 18px; border: 1px solid var(--border); flex: 1; position: relative; min-height: 48px; }
+.ai-result-text { font-size: 14px; color: var(--text2); line-height: 1.8; }
+.ai-result-text :deep(strong) { color: var(--text); }
+.ai-result-text :deep(.ai-code) { background: #1a1a1a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Fira Code', monospace; font-size: 13px; overflow-x: auto; margin: 8px 0; white-space: pre; }
+.ai-result-text :deep(.ai-inline-code) { background: var(--surface); padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 13px; }
 
-.lang-pill { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #fff; }
+/* 加载动画 */
+.ai-loading { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text2); }
+.ai-dots { display: flex; gap: 4px; }
+.ai-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: dotPulse 1.4s infinite; }
+.ai-dots i:nth-child(2) { animation-delay: 0.2s; }
+.ai-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
 
+/* 流式光标 */
+.ai-cursor { animation: blink 1s infinite; color: var(--primary); font-weight: bold; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* 提示 */
+.ai-hint { text-align: center; padding: 24px; color: var(--text3); font-size: 14px; }
+
+/* 评论 */
 .comment-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .comment-item:last-child { border-bottom: none; }
 .comment-meta { display: flex; justify-content: space-between; margin-bottom: 4px; }

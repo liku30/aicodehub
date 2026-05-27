@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiCodeHub - AI驱动的代码管理平台</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:#0a0a0a;color:#f0f0f0;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    :root{--bg:#0a0a0a;--s:#141414;--s2:#1e1e1e;--s3:#252525;--bd:#2a2a2a;--bd2:#333;--t:#f0f0f0;--t2:#a0a0a0;--t3:#666;--ac:#10a37f;--ac2:#19c37d;--acl:rgba(16,163,127,0.12);--gd:linear-gradient(135deg,#10a37f,#19c37d);--gdt:linear-gradient(135deg,#10a37f,#19c37d,#a970ff);--gdt2:linear-gradient(135deg,#10a37f,#6c9eff,#a970ff);--pu:#a970ff;--bl:#6c9eff;--or:#f0883e}
+    .container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+    @keyframes typing{from{width:0}to{width:100%}}
+    @keyframes blink{50%{border-color:transparent}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+    @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+
+    .anim{animation:fadeUp .7s ease both}.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}.d5{animation-delay:.5s}.d6{animation-delay:.6s}
+
+    .glow{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:.08;pointer-events:none;z-index:-1}
+    .grid-bg{background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.03) 1px,transparent 0);background-size:40px 40px}
+
+    /* 导航 */
+    .nav{background:rgba(10,10,10,.88);backdrop-filter:blur(24px);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+    .nav-in{max-width:1200px;margin:0 auto;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+    .logo{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;color:var(--t);text-decoration:none}
+    .logo-i{width:30px;height:30px;border-radius:8px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+    .nav-r{display:flex;align-items:center;gap:16px}
+    .nav-a{color:var(--t2);font-size:14px;text-decoration:none;transition:color .15s}.nav-a:hover{color:var(--t)}
+    .btn{background:var(--ac);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}.btn:hover{background:var(--ac2);transform:translateY(-1px)}
+    .btn-o{background:transparent;color:var(--t2);border:1px solid var(--bd2);padding:9px 22px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}.btn-o:hover{border-color:var(--t2);color:var(--t)}
+    .btn-p{border-radius:9999px}
+    .btn-lg{padding:14px 32px;font-size:15px;border-radius:10px}
+    .btn-gd{background:var(--gdt);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}.btn-gd:hover{opacity:.9;transform:translateY(-1px)}
+
+    /* ===== Hero ===== */
+    .hero{text-align:center;padding:130px 20px 80px;position:relative;overflow:hidden;background:radial-gradient(ellipse at top,rgba(16,163,127,.07) 0%,transparent 50%),radial-gradient(ellipse at 30% 80%,rgba(169,112,255,.04) 0%,transparent 40%)}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;border:1px solid var(--bd2);background:var(--s2);font-size:13px;color:var(--t2)}
+    .badge-new{background:var(--acl);color:var(--ac);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--ac);display:inline-block;animation:pulse 2s infinite}
+    .hero h1{font-size:60px;font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:20px}
+    .hero h1 em{font-style:normal;background:var(--gdt);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{font-size:18px;color:var(--t2);margin-bottom:40px;line-height:1.7;max-width:580px;margin-left:auto;margin-right:auto}
+    .hero-acts{display:flex;gap:14px;justify-content:center;margin-bottom:60px}
+    .stats{display:flex;gap:56px;justify-content:center}
+    .sn{font-size:36px;font-weight:800;color:var(--t);display:block;font-variant-numeric:tabular-nums}.sn.ac{color:var(--ac)}
+    .sl{font-size:13px;color:var(--t3);margin-top:4px}
+
+    /* ===== AI实时对话演示 ===== */
+    .ai-demo{max-width:900px;margin:0 auto 0;border-radius:16px;overflow:hidden;background:var(--s);border:1px solid var(--bd);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .ai-demo-top{display:flex;align-items:center;gap:8px;padding:12px 18px;background:var(--s);border-bottom:1px solid var(--bd);font-size:13px;color:var(--t3)}
+    .ai-dots{display:flex;gap:6px}.ai-dots span{width:10px;height:10px;border-radius:50%}.ai-dots span:nth-child(1){background:#ff5f57}.ai-dots span:nth-child(2){background:#ffbd2e}.ai-dots span:nth-child(3){background:#28c840}
+    .ai-demo-body{display:grid;grid-template-columns:1fr 1fr;min-height:320px}
+    .ai-code-side{padding:16px;font-family:'Fira Code','Cascadia Code',monospace;font-size:13px;line-height:1.7;color:#abb2bf;border-right:1px solid var(--bd);overflow:hidden}
+    .ai-chat-side{padding:16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+    .chat-msg{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;animation:slideIn .4s ease both}
+    .chat-user{background:var(--acl);color:var(--ac2);align-self:flex-end;border-bottom-right-radius:4px;max-width:85%}
+    .chat-ai{background:var(--s2);border:1px solid var(--bd);color:var(--t2);align-self:flex-start;border-bottom-left-radius:4px;max-width:90%}
+    .chat-ai strong{color:var(--t)}
+    .ai-demo-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--bd);background:var(--s)}
+    .ai-demo-input input{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;color:var(--t);font-size:13px;outline:none}
+    .ai-demo-input input::placeholder{color:var(--t3)}
+    .ai-demo-input button{background:var(--ac);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer}
+
+    .kw{color:#c678dd}.tp{color:#e5c07b}.fn{color:#61afef}.st{color:#98c379}.cm{color:#5c6370;font-style:italic}.nm{color:#d19a66}.op{color:#56b6c2}
+
+    /* ===== AI功能展示 ===== */
+    .sec{padding:80px 0}
+    .sec-t{text-align:center;font-size:32px;font-weight:800;letter-spacing:-.03em;margin-bottom:12px}
+    .sec-p{text-align:center;font-size:16px;color:var(--t2);margin-bottom:48px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7}
+
+    .ai-features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .ai-fc{background:var(--s);border:1px solid var(--bd);border-radius:16px;padding:28px 20px;text-align:center;transition:all .25s;position:relative;overflow:hidden}
+    .ai-fc:hover{border-color:var(--ac);transform:translateY(-6px);box-shadow:0 8px 30px rgba(16,163,127,.1)}
+    .ai-fc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gd);opacity:0;transition:opacity .25s}
+    .ai-fc:hover::before{opacity:1}
+    .ai-fi{width:52px;height:52px;border-radius:14px;background:var(--acl);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px}
+    .ai-fc h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .ai-fc p{font-size:13px;color:var(--t2);line-height:1.6}
+
+    /* ===== AI代码生成演示 ===== */
+    .gen-section{background:var(--s);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+    .gen-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:center}
+    .gen-input,.gen-output{background:var(--bg);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+    .gen-label{padding:12px 18px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:8px}
+    .gen-label .tag{background:var(--acl);color:var(--ac);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+    .gen-body{padding:18px;font-family:'Fira Code',monospace;font-size:13px;line-height:1.7}
+    .gen-nl{color:var(--t2);line-height:1.8}
+    .gen-arrow{display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--ac);animation:float 2s ease infinite}
+
+    /* ===== 工作流程 ===== */
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1000px;margin:0 auto;position:relative}
+    .steps::before{content:'';position:absolute;top:28px;left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--ac),var(--pu),var(--bl));opacity:.3}
+    .step{text-align:center;position:relative;z-index:1}
+    .step-n{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;font-weight:800;color:#fff;position:relative}
+    .step:nth-child(1) .step-n{background:var(--gd)}
+    .step:nth-child(2) .step-n{background:linear-gradient(135deg,#19c37d,#6c9eff)}
+    .step:nth-child(3) .step-n{background:linear-gradient(135deg,#6c9eff,#a970ff)}
+    .step:nth-child(4) .step-n{background:linear-gradient(135deg,#a970ff,#f0883e)}
+    .step h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .step p{font-size:13px;color:var(--t2);line-height:1.5}
+
+    /* ===== 特性大卡片 ===== */
+    .feat-big{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .feat-bc{background:var(--s);border:1px solid var(--bd);border-radius:16px;padding:36px;transition:all .25s}
+    .feat-bc:hover{border-color:var(--bd2);transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,.15)}
+    .feat-bc h3{font-size:20px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+    .feat-bc p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:16px}
+    .feat-tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;background:var(--acl);color:var(--ac);margin-right:6px;margin-bottom:6px}
+    .feat-bc .mini-code{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px;font-family:'Fira Code',monospace;font-size:12px;line-height:1.6;color:#abb2bf;margin-top:12px}
+
+    /* ===== 精选代码 ===== */
+    .prev{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .prev-c{background:var(--s);border:1px solid var(--bd);border-radius:14px;padding:20px;transition:all .2s;cursor:pointer}
+    .prev-c:hover{border-color:var(--bd2);transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+    .prev-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;color:#fff}
+    .prev-meta{display:flex;gap:12px;font-size:12px;color:var(--t3)}
+    .cp{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;font-family:'Fira Code',monospace;font-size:12px;line-height:1.5;overflow:hidden;max-height:100px;-webkit-mask-image:linear-gradient(black 60%,transparent);mask-image:linear-gradient(black 60%,transparent);color:#abb2bf}
+    .prev-ai{display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;background:var(--acl);border-radius:8px;font-size:12px;color:var(--ac)}
+
+    /* ===== 支持语言 ===== */
+    .lang-g{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:640px;margin:0 auto}
+    .lang-c{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--s);border:1px solid var(--bd);border-radius:12px;transition:all .25s}
+    .lang-c:hover{border-color:var(--bd2);transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    .lang-ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+    .lang-n{font-size:14px;color:var(--t);font-weight:600}
+    .lang-cnt{font-size:11px;color:var(--t3)}
+
+    /* ===== 用户评价 ===== */
+    .testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .test-c{background:var(--s);border:1px solid var(--bd);border-radius:14px;padding:24px;transition:all .2s}
+    .test-c:hover{border-color:var(--bd2);transform:translateY(-2px)}
+    .test-stars{color:#f0883e;font-size:14px;margin-bottom:10px}
+    .test-text{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:16px;font-style:italic}
+    .test-author{display:flex;align-items:center;gap:10px}
+    .test-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+    .test-name{font-size:14px;font-weight:600;color:var(--t)}
+    .test-role{font-size:12px;color:var(--t3)}
+
+    /* ===== 数据统计 ===== */
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:48px 0;background:var(--s);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+    .stats-item{text-align:center}
+    .stats-num{font-size:40px;font-weight:800;display:block;margin-bottom:4px}
+    .stats-num.g1{background:var(--gd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .stats-num.g2{background:var(--gdt2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .stats-lbl{font-size:14px;color:var(--t3)}
+
+    /* ===== FAQ ===== */
+    .faq-list{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+    .faq-item{background:var(--s);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:border-color .2s}
+    .faq-item:hover{border-color:var(--bd2)}
+    .faq-q{padding:18px 22px;font-size:15px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+    .faq-q::after{content:'+';font-size:20px;color:var(--t3);transition:transform .2s}
+    .faq-a{padding:0 22px 18px;font-size:14px;color:var(--t2);line-height:1.7;display:none}
+    .faq-item.open .faq-a{display:block}
+    .faq-item.open .faq-q::after{transform:rotate(45deg)}
+
+    /* ===== CTA ===== */
+    .cta{text-align:center;padding:100px 20px;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,rgba(16,163,127,.1) 0%,transparent 60%),radial-gradient(ellipse at 70% 30%,rgba(169,112,255,.06) 0%,transparent 40%)}
+    .cta h2{font-size:42px;font-weight:800;letter-spacing:-.03em;margin-bottom:16px}
+    .cta h2 em{font-style:normal;background:var(--gdt);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .cta p{font-size:18px;color:var(--t2);margin-bottom:36px}
+    .cta-acts{display:flex;gap:14px;justify-content:center}
+
+    /* ===== 页脚 ===== */
+    .ft{padding:56px 0 32px;border-top:1px solid var(--bd)}
+    .ft-g{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
+    .ft h4{color:var(--t);font-size:14px;font-weight:700;margin-bottom:14px}
+    .ft a{color:var(--t2);font-size:14px;text-decoration:none;display:block;margin-bottom:10px;transition:color .15s}.ft a:hover{color:var(--t)}
+    .ft span{color:var(--t2);font-size:14px;display:block;margin-bottom:10px}
+    .ft-bottom{border-top:1px solid var(--bd);margin-top:36px;padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--t3)}
+
+    /* 响应式 */
+    @media(max-width:900px){
+      .hero h1{font-size:38px}
+      .ai-features{grid-template-columns:repeat(2,1fr)}
+      .feat-big{grid-template-columns:1fr}
+      .prev{grid-template-columns:1fr}
+      .testimonials{grid-template-columns:1fr}
+      .stats-bar{grid-template-columns:repeat(2,1fr)}
+      .steps{grid-template-columns:repeat(2,1fr)}
+      .ai-demo-body{grid-template-columns:1fr}
+      .gen-grid{grid-template-columns:1fr;gap:16px}
+      .gen-arrow{transform:rotate(90deg)}
+      .lang-g{grid-template-columns:repeat(2,1fr)}
+      .ft-g{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+  <div class="nav-in">
+    <a href="#" class="logo"><span class="logo-i">&lt;/&gt;</span><span>AiCodeHub</span></a>
+    <div class="nav-r">
+      <a href="#features" class="nav-a">功能</a>
+      <a href="#demo" class="nav-a">演示</a>
+      <a href="#pricing" class="nav-a">定价</a>
+      <button class="btn-o">登录</button>
+      <button class="btn btn-p">免费注册</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero grid-bg">
+  <div class="glow" style="top:-200px;left:-100px;background:#10a37f;"></div>
+  <div class="glow" style="top:200px;right:-200px;background:#a970ff;"></div>
+  <div class="glow" style="bottom:-100px;left:40%;background:#6c9eff;"></div>
+
+  <div class="badge anim"><span class="dot"></span> DeepSeek R1 驱动 <span class="badge-new">NEW</span></div>
+  <h1 class="anim d1" style="margin-top:28px">用 AI 管理<br><em>你的代码</em></h1>
+  <p class="anim d2">不止是代码存储 —— AI 自动解释、审查、优化、生成测试、<br>翻译代码、生成文档。像对话一样驾驭每一行代码。</p>
+  <div class="hero-acts anim d3">
+    <button class="btn btn-lg">免费开始使用</button>
+    <button class="btn-o btn-lg">观看演示视频</button>
+  </div>
+  <div class="stats anim d4">
+    <div><span class="sn">34</span><span class="sl">代码片段</span></div>
+    <div><span class="sn ac">8</span><span class="sl">编程语言</span></div>
+    <div><span class="sn ac">5</span><span class="sl">AI 能力</span></div>
+    <div><span class="sn">100%</span><span class="sl">免费使用</span></div>
+  </div>
+</section>
+
+<!-- AI实时对话演示 -->
+<section class="sec" id="demo">
+  <div class="container">
+    <h2 class="sec-t anim">AI 实时分析演示</h2>
+    <p class="sec-p anim d1">粘贴代码，AI 自动理解上下文，给出专业级分析</p>
+    <div class="ai-demo anim d2">
+      <div class="ai-demo-top">
+        <div class="ai-dots"><span></span><span></span><span></span></div>
+        <span style="margin-left:8px">AiCodeHub AI · DeepSeek R1</span>
+        <span style="margin-left:auto;color:var(--ac)">● 在线</span>
+      </div>
+      <div class="ai-demo-body">
+        <div class="ai-code-side">
+<span class="kw">public static void</span> <span class="fn">quickSort</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> low, <span class="tp">int</span> high) {
+    <span class="kw">if</span> (low < high) {
+        <span class="tp">int</span> pi = <span class="fn">partition</span>(arr, low, high);
+        <span class="fn">quickSort</span>(arr, low, pi - <span class="nm">1</span>);
+        <span class="fn">quickSort</span>(arr, pi + <span class="nm">1</span>, high);
+    }
+}
+
+<span class="kw">private static int</span> <span class="fn">partition</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> low, <span class="tp">int</span> high) {
+    <span class="tp">int</span> pivot = arr[high];
+    <span class="tp">int</span> i = low - <span class="nm">1</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> j = low; j < high; j++) {
+        <span class="kw">if</span> (arr[j] <= pivot) {
+            i++;
+            <span class="fn">swap</span>(arr, i, j);
+        }
+    }
+    <span class="fn">swap</span>(arr, i + <span class="nm">1</span>, high);
+    <span class="kw">return</span> i + <span class="nm">1</span>;
+}
+        </div>
+        <div class="ai-chat-side">
+          <div class="chat-msg chat-user" style="animation-delay:.5s">分析这段快速排序的时间和空间复杂度</div>
+          <div class="chat-msg chat-ai" style="animation-delay:1s">
+            <strong>时间复杂度分析：</strong><br>
+            平均情况 O(n log n)，最坏 O(n²)（已排序数组）。<br><br>
+            <strong>优化建议：</strong><br>
+            可用「三数取中法」选择 pivot，避免最坏情况。随机化 partition 也可降低退化概率。
+          </div>
+          <div class="chat-msg chat-user" style="animation-delay:1.5s">生成单元测试</div>
+          <div class="chat-msg chat-ai" style="animation-delay:2s">
+            <strong>已生成 3 个测试用例：</strong><br>
+            ✅ 正常数组排序<br>
+            ✅ 空数组 / 单元素<br>
+            ✅ 含重复元素
+          </div>
+        </div>
+      </div>
+      <div class="ai-demo-input">
+        <input type="text" placeholder="输入问题，如：解释这段代码、优化建议、生成测试..." readonly>
+        <button>发送</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI功能矩阵 -->
+<section class="sec" id="features" style="background:var(--s);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
+  <div class="container">
+    <h2 class="sec-t anim">六大 AI 能力</h2>
+    <p class="sec-p anim d1">不止是存储，更是你的 AI 编程伙伴</p>
+    <div class="ai-features">
+      <div class="ai-fc anim d1">
+        <div class="ai-fi">&#x1F4A1;</div>
+        <h3>代码解释</h3>
+        <p>AI 逐行解读代码逻辑，用自然语言解释算法思路，适合学习和审查</p>
+      </div>
+      <div class="ai-fc anim d2">
+        <div class="ai-fi">&#x26A1;</div>
+        <h3>优化建议</h3>
+        <p>自动分析时间/空间复杂度，给出性能优化方案和最佳实践建议</p>
+      </div>
+      <div class="ai-fc anim d3">
+        <div class="ai-fi">&#x1F9EA;</div>
+        <h3>生成测试</h3>
+        <p>根据代码逻辑自动生成单元测试用例，覆盖正常、边界和异常场景</p>
+      </div>
+      <div class="ai-fc anim d4">
+        <div class="ai-fi">&#x1F504;</div>
+        <h3>代码翻译</h3>
+        <p>一键将代码在 Java、Python、Go、JS 等语言间互相转换</p>
+      </div>
+      <div class="ai-fc anim d5">
+        <div class="ai-fi">&#x1F4DD;</div>
+        <h3>文档生成</h3>
+        <p>自动生成 Javadoc/docstring/注释，让代码可读性提升一个等级</p>
+      </div>
+      <div class="ai-fc anim d6">
+        <div class="ai-fi">&#x1F50D;</div>
+        <h3>代码审查</h3>
+        <p>AI 代码审查，发现潜在 Bug、安全漏洞和代码异味</p>
+      </div>
+      <div class="ai-fc anim d5">
+        <div class="ai-fi">&#x1F4C8;</div>
+        <h3>复杂度分析</h3>
+        <p>自动计算时间/空间复杂度，生成可视化分析报告</p>
+      </div>
+      <div class="ai-fc anim d6">
+        <div class="ai-fi">&#x1F3AD;</div>
+        <h3>代码重构</h3>
+        <p>智能建议设计模式应用、提取方法、消除重复代码</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI代码生成 -->
+<section class="sec gen-section">
+  <div class="container">
+    <h2 class="sec-t anim">AI 代码生成</h2>
+    <p class="sec-p anim d1">用自然语言描述需求，AI 自动生成高质量代码</p>
+    <div class="gen-grid anim d2">
+      <div class="gen-input">
+        <div class="gen-label"><span class="tag">自然语言</span> 你的需求</div>
+        <div class="gen-body gen-nl">
+          写一个 Python 装饰器，实现函数重试机制：<br>
+          - 最多重试 3 次<br>
+          - 每次间隔指数递增（1s, 2s, 4s）<br>
+          - 超过重试次数后抛出最后一次异常<br>
+          - 支持自定义重试次数和异常类型
+        </div>
+      </div>
+      <div class="gen-arrow">→</div>
+      <div class="gen-output">
+        <div class="gen-label"><span class="tag">Python</span> AI 生成的代码</div>
+        <div class="gen-body">
+<span class="kw">import</span> time, functools
+
+<span class="kw">def</span> <span class="fn">retry</span>(max_attempts=<span class="nm">3</span>, exceptions=(<span class="tp">Exception</span>,)):
+    <span class="kw">def</span> <span class="fn">decorator</span>(func):
+        <span class="an">@functools.wraps</span>(func)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+            <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_attempts):
+                <span class="kw">try</span>:
+                    <span class="kw">return</span> <span class="fn">func</span>(*args, **kwargs)
+                <span class="kw">except</span> exceptions <span class="kw">as</span> e:
+                    <span class="kw">if</span> attempt == max_attempts - <span class="nm">1</span>:
+                        <span class="kw">raise</span>
+                    <span class="fn">time.sleep</span>(<span class="nm">2</span> ** attempt)
+        <span class="kw">return</span> wrapper
+    <span class="kw">return</span> decorator
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 工作流程 -->
+<section class="sec">
+  <div class="container">
+    <h2 class="sec-t anim">四步开始</h2>
+    <p class="sec-p anim d1">零学习成本，30 秒注册即可使用</p>
+    <div class="steps">
+      <div class="step anim d1"><div class="step-n">1</div><h3>注册账号</h3><p>GitHub 一键登录<br>或邮箱快速注册</p></div>
+      <div class="step anim d2"><div class="step-n">2</div><h3>粘贴代码</h3><p>自动识别语言<br>标签分类管理</p></div>
+      <div class="step anim d3"><div class="step-n">3</div><h3>AI 分析</h3><p>一键获取解释<br>优化和测试</p></div>
+      <div class="step anim d4"><div class="step-n">4</div><h3>社区分享</h3><p>公开代码片段<br>发现优秀实践</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 特性大卡片 -->
+<section class="sec" style="background:var(--s);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
+  <div class="container">
+    <h2 class="sec-t anim">为开发者打造</h2>
+    <p class="sec-p anim d1">不只是代码管理，更是智能开发工作台</p>
+    <div class="feat-big">
+      <div class="feat-bc anim d1">
+        <h3>&#x1F916; AI 智能分析引擎</h3>
+        <p>集成 DeepSeek R1 大模型，深度理解代码语义。不只是简单的关键词匹配，而是真正理解你的代码逻辑。</p>
+        <span class="feat-tag">代码解释</span>
+        <span class="feat-tag">优化建议</span>
+        <span class="feat-tag">生成测试</span>
+        <span class="feat-tag">复杂度分析</span>
+        <span class="feat-tag">代码审查</span>
+        <div class="mini-code">
+<span class="cm">// AI 自动分析结果</span>
+复杂度: O(n log n) / O(log n)
+建议: 使用三数取中法选择 pivot
+测试: 已生成 3 个用例 ✅
+        </div>
+      </div>
+      <div class="feat-bc anim d2">
+        <h3>&#x26A1; 高效代码管理</h3>
+        <p>多语言语法高亮、标签分类、全文搜索、收藏夹。用管理笔记的方式管理代码片段，告别混乱的本地文件。</p>
+        <span class="feat-tag">语法高亮</span>
+        <span class="feat-tag">标签分类</span>
+        <span class="feat-tag">全文搜索</span>
+        <span class="feat-tag">收藏夹</span>
+        <span class="feat-tag">版本记录</span>
+        <div class="mini-code">
+<span class="cm">// 搜索示例</span>
+搜索: "快速排序 Java" → 3 条结果
+标签: #算法 #排序 #Java
+        </div>
+      </div>
+      <div class="feat-bc anim d3">
+        <h3>&#x1F504; 代码翻译器</h3>
+        <p>一键将代码在不同编程语言间智能转换。保留逻辑结构，适配目标语言的惯用写法和标准库。</p>
+        <span class="feat-tag">Java → Python</span>
+        <span class="feat-tag">Python → Go</span>
+        <span class="feat-tag">JS → TS</span>
+        <span class="feat-tag">保持逻辑一致</span>
+        <div class="mini-code">
+<span class="cm">// 自动翻译</span>
+Java 快速排序 → Python 版本
+已生成，包含类型注解 ✅
+        </div>
+      </div>
+      <div class="feat-bc anim d4">
+        <h3>&#x1F465; 开发者社区</h3>
+        <p>公开你的代码片段，发现优秀实践。收藏、评论、Fork，与全球开发者共同成长。</p>
+        <span class="feat-tag">公开分享</span>
+        <span class="feat-tag">收藏评论</span>
+        <span class="feat-tag">Fork 复制</span>
+        <span class="feat-tag">排行榜</span>
+        <div class="mini-code">
+<span class="cm">// 社区动态</span>
+@dev_wang 发布了 "JWT 验证中间件"
+已有 28 人收藏 · 12 条评论 🔥
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 精选代码 -->
+<section class="sec">
+  <div class="container">
+    <h2 class="sec-t anim">精选代码片段</h2>
+    <p class="sec-p anim d1">来自社区的高质量代码，AI 已经帮你分析好了</p>
+    <div class="prev">
+      <div class="prev-c anim d1">
+        <div class="prev-top">
+          <span class="pill" style="background:#ED8B00">Java</span>
+          <span style="font-size:12px;color:var(--t3)">快速排序</span>
+        </div>
+        <div class="cp"><span class="kw">public static void</span> <span class="fn">sort</span>(<span class="tp">int</span>[] arr, <span class="tp">int</span> l, <span class="tp">int</span> r) {
+    <span class="kw">if</span> (l >= r) <span class="kw">return</span>;
+    <span class="tp">int</span> mid = l + ((r - l) >> <span class="nm">1</span>);
+    <span class="kw">if</span> (arr[l] > arr[mid]) <span class="fn">swap</span>(arr, l, mid);</div>
+        <div class="prev-ai">&#x1F4A1; AI: O(n log n) · 三数取中优化 · 已生成3个测试</div>
+      </div>
+      <div class="prev-c anim d2">
+        <div class="prev-top">
+          <span class="pill" style="background:#3776AB">Python</span>
+          <span style="font-size:12px;color:var(--t3)">装饰器模式</span>
+        </div>
+        <div class="cp"><span class="kw">def</span> <span class="fn">retry</span>(max_attempts=<span class="nm">3</span>):
+    <span class="kw">def</span> <span class="fn">decorator</span>(func):
+        <span class="an">@functools.wraps</span>(func)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(*a, **kw):
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(max_attempts):
+                <span class="kw">try</span>: <span class="kw">return</span> func(*a, **kw)</div>
+        <div class="prev-ai">&#x1F4A1; AI: 设计模式 · 可增加指数退避策略</div>
+      </div>
+      <div class="prev-c anim d3">
+        <div class="prev-top">
+          <span class="pill" style="background:#F7DF1E;color:#333">JavaScript</span>
+          <span style="font-size:12px;color:var(--t3)">防抖函数</span>
+        </div>
+        <div class="cp"><span class="kw">function</span> <span class="fn">debounce</span>(fn, delay = <span class="nm">300</span>) {
+    <span class="kw">let</span> timer = <span class="kw">null</span>;
+    <span class="kw">return function</span>(...args) {
+        clearTimeout(timer);
+        timer = <span class="fn">setTimeout</span>(() => {
+            fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+        }, delay);</div>
+        <div class="prev-ai">&#x1F4A1; AI: 性能优化 · 建议添加 leading 立即执行选项</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 数据统计 -->
+<div class="stats-bar">
+  <div class="container" style="display:contents">
+    <div class="stats-item anim d1"><span class="stats-num g1">34+</span><span class="stats-lbl">代码片段</span></div>
+    <div class="stats-item anim d2"><span class="stats-num g2">8</span><span class="stats-lbl">编程语言</span></div>
+    <div class="stats-item anim d3"><span class="stats-num g1">6</span><span class="stats-lbl">AI 能力</span></div>
+    <div class="stats-item anim d4"><span class="stats-num g2">∞</span><span class="stats-lbl">免费使用</span></div>
+  </div>
+</div>
+
+<!-- 支持语言 -->
+<section class="sec">
+  <div class="container">
+    <h2 class="sec-t anim">支持的语言</h2>
+    <p class="sec-p anim d1">覆盖主流编程语言，持续扩展中</p>
+    <div class="lang-g anim d2">
+      <div class="lang-c"><div class="lang-ic" style="background:#ED8B00">J</div><div><span class="lang-n">Java</span><br><span class="lang-cnt">12 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#3776AB">Py</div><div><span class="lang-n">Python</span><br><span class="lang-cnt">8 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#F7DF1E;color:#333">JS</div><div><span class="lang-n">JavaScript</span><br><span class="lang-cnt">5 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#3178C6">TS</div><div><span class="lang-n">TypeScript</span><br><span class="lang-cnt">3 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#00ADD8">Go</div><div><span class="lang-n">Go</span><br><span class="lang-cnt">2 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#00599C">C+</div><div><span class="lang-n">C++</span><br><span class="lang-cnt">2 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#336791">SQ</div><div><span class="lang-n">SQL</span><br><span class="lang-cnt">1 片段</span></div></div>
+      <div class="lang-c"><div class="lang-ic" style="background:#89e051">Sh</div><div><span class="lang-n">Shell</span><br><span class="lang-cnt">1 片段</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 用户评价 -->
+<section class="sec" style="background:var(--s);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
+  <div class="container">
+    <h2 class="sec-t anim">用户怎么说</h2>
+    <p class="sec-p anim d1">来自真实开发者的使用体验</p>
+    <div class="testimonials">
+      <div class="test-c anim d1">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text">"AI 解释代码真的太方便了，以前看别人代码要半小时，现在 AI 秒级解读，还能给出优化建议。"</div>
+        <div class="test-author">
+          <div class="test-av" style="background:var(--gd)">W</div>
+          <div><div class="test-name">王同学</div><div class="test-role">计算机科学 · 大三</div></div>
+        </div>
+      </div>
+      <div class="test-c anim d2">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text">"生成测试用例功能太赞了！以前写测试最头疼，现在 AI 自动帮我生成，覆盖率还很高。"</div>
+        <div class="test-author">
+          <div class="test-av" style="background:linear-gradient(135deg,#6c9eff,#a970ff)">L</div>
+          <div><div class="test-name">李同学</div><div class="test-role">软件工程 · 研一</div></div>
+        </div>
+      </div>
+      <div class="test-c anim d3">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text">"代码翻译功能帮我把 Java 作业转成了 Python，逻辑完全一致，还能适配 Python 的惯用写法。"</div>
+        <div class="test-author">
+          <div class="test-av" style="background:linear-gradient(135deg,#f0883e,#10a37f)">Z</div>
+          <div><div class="test-name">赵同学</div><div class="test-role">数据科学 · 大四</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="pricing">
+  <div class="container">
+    <h2 class="sec-t anim">常见问题</h2>
+    <p class="sec-p anim d1">关于 AiCodeHub 你想知道的</p>
+    <div class="faq-list">
+      <div class="faq-item open anim d1">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">AiCodeHub 是免费的吗？</div>
+        <div class="faq-a">是的！AiCodeHub 目前完全免费使用，包括所有 AI 功能。代码片段存储、AI 分析、社区分享全部免费开放。</div>
+      </div>
+      <div class="faq-item anim d2">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">AI 使用的是什么模型？</div>
+        <div class="faq-a">我们集成 DeepSeek R1 大语言模型，专注于代码理解和生成。它能深度理解代码语义，提供专业级的分析和建议。</div>
+      </div>
+      <div class="faq-item anim d3">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">支持哪些编程语言？</div>
+        <div class="faq-a">目前支持 Java、Python、JavaScript、TypeScript、Go、C/C++、Rust、SQL、Shell 等主流语言，未来会持续扩展。</div>
+      </div>
+      <div class="faq-item anim d4">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">代码片段可以设为私有吗？</div>
+        <div class="faq-a">当然可以！创建代码片段时可以选择「公开」或「私有」，私有片段只有你自己能看到。</div>
+      </div>
+      <div class="faq-item anim d5">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">如何保证代码安全？</div>
+        <div class="faq-a">所有数据通过 HTTPS 加密传输，密码使用 BCrypt 加密存储。JWT Token 认证确保只有你能访问自己的数据。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2 class="anim">准备好开始了吗？</h2>
+  <p class="anim d1">免费注册，立即体验 <em style="background:var(--gd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-style:normal">AI 代码管理</em></p>
+  <div class="cta-acts anim d2">
+    <button class="btn btn-lg">免费注册</button>
+    <button class="btn-o btn-lg">浏览代码库</button>
+  </div>
+  <p class="anim d3" style="font-size:13px;color:var(--t3);margin-top:16px">无需信用卡 · 即刻使用全部功能 · 开源项目</p>
+</section>
+
+<!-- 页脚 -->
+<footer class="ft">
+  <div class="container">
+    <div class="ft-g">
+      <div>
+        <div class="logo" style="margin-bottom:14px"><span class="logo-i">&lt;/&gt;</span><span>AiCodeHub</span></div>
+        <p style="color:var(--t3);font-size:14px;line-height:1.7;max-width:280px">AI 驱动的代码片段管理平台。存储、分析、分享代码，让每一行代码都有 AI 加持。</p>
+      </div>
+      <div>
+        <h4>产品</h4>
+        <a href="#">探索代码库</a>
+        <a href="#">免费注册</a>
+        <a href="#">AI 分析</a>
+        <a href="#">代码翻译</a>
+      </div>
+      <div>
+        <h4>技术栈</h4>
+        <span>Spring Boot 3</span>
+        <span>Vue 3 + Vite</span>
+        <span>MySQL 8 + Redis</span>
+        <span>DeepSeek R1</span>
+      </div>
+      <div>
+        <h4>支持语言</h4>
+        <span>Java · Python</span>
+        <span>JavaScript · TS</span>
+        <span>Go · C++</span>
+        <span>SQL · Shell</span>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <span>&copy; 2026 AiCodeHub. 用 AI 让代码管理更智能。</span>
+      <span>Spring Boot 3 · Vue 3 · MySQL · DeepSeek AI</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
