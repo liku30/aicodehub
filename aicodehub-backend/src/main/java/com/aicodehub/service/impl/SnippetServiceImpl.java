@@ -178,6 +178,14 @@ public class SnippetServiceImpl implements SnippetService {
                 pageRequest.getOffset(), pageRequest.getPageSize());
     }
 
+    @Override
+    public Long getPublicCount() {
+        return snippetMapper.selectCount(
+                new LambdaQueryWrapper<Snippet>()
+                        .eq(Snippet::getVisibility, 1)
+                        .eq(Snippet::getIsDeleted, 0));
+    }
+
     /**
      * 收藏/取消收藏（切换）
      */

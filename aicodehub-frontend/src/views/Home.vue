@@ -423,6 +423,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
+import { getSnippetCount } from '@/api/snippet'
 
 const userStore = useUserStore()
 const isDark = ref(true)
@@ -462,6 +463,7 @@ function toggleTheme() {
 onMounted(() => {
   const saved = localStorage.getItem('theme')
   if (saved === 'light') { isDark.value = false; document.documentElement.setAttribute('data-theme', 'light') }
+  getSnippetCount().then(r => { snippetCount.value = r.data || 0 }).catch(() => {})
 })
 </script>
 

@@ -81,6 +81,16 @@ public class SnippetController {
     }
 
     /**
+     * 获取公开片段总数
+     * GET /api/snippet/count
+     * 不需要登录
+     */
+    @GetMapping("/count")
+    public Result<Long> getCount() {
+        return Result.success(snippetService.getPublicCount());
+    }
+
+    /**
      * 探索广场（公开片段）
      * GET /api/snippet/explore
      * 不需要登录

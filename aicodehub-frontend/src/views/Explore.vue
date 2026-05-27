@@ -66,7 +66,7 @@ const langColors = { java:'#ED8B00', python:'#3776AB', javascript:'#F7DF1E', typ
 function getLangColor(l) { return langColors[l?.toLowerCase()] || '#666' }
 function formatTime(t) { if (!t) return ''; const d = Math.floor((new Date() - new Date(t)) / 86400000); return d === 0 ? '今天' : d < 30 ? d+'天前' : new Date(t).toLocaleDateString() }
 function toggleTheme() { isDark.value = !isDark.value; document.documentElement.setAttribute('data-theme', isDark.value ? '' : 'light'); localStorage.setItem('theme', isDark.value ? 'dark' : 'light') }
-async function loadData() { loading.value = true; try { const p = { pageNum: 1, pageSize: 20 }; if (keyword.value) p.keyword = keyword.value; if (language.value) p.language = language.value; const r = await exploreSnippets(p); snippets.value = r.data || [] } finally { loading.value = false } }
+async function loadData() { loading.value = true; try { const p = { pageNum: 1, pageSize: 100 }; if (keyword.value) p.keyword = keyword.value; if (language.value) p.language = language.value; const r = await exploreSnippets(p); snippets.value = r.data || [] } finally { loading.value = false } }
 onMounted(() => { loadData(); const s = localStorage.getItem('theme'); if (s === 'light') { isDark.value = false; document.documentElement.setAttribute('data-theme', 'light') } })
 </script>
 

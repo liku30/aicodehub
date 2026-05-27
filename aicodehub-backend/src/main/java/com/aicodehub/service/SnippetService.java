@@ -29,6 +29,9 @@ public interface SnippetService {
     /** 获取公开片段列表（探索广场） */
     List<Snippet> getPublicSnippets(PageRequest pageRequest, String language, String keyword);
 
+    /** 获取公开片段总数 */
+    Long getPublicCount();
+
     /** 收藏/取消收藏 */
     boolean toggleFavorite(Long snippetId);
 

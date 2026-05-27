@@ -32,6 +32,11 @@ export function exploreSnippets(params) {
   return request.get('/snippet/explore', { params })
 }
 
+// 获取公开片段总数
+export function getSnippetCount() {
+  return request.get('/snippet/count')
+}
+
 // 收藏/取消收藏
 export function toggleFavorite(id) {
   return request.post(`/snippet/${id}/favorite`)
