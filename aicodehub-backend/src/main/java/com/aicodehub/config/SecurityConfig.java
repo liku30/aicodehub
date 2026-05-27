@@ -54,6 +54,9 @@ public class SecurityConfig {
 
             // 4. 配置接口权限规则
             .authorizeHttpRequests(auth -> auth
+                // 放行OPTIONS预检请求（CORS需要）
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 // 放行的接口（不需要登录就能访问）
                 .requestMatchers(
                     "/api/auth/**",          // 登录、注册
